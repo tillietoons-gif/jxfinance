@@ -53,8 +53,8 @@ function inferLineItemType(description: string): string {
   if (d.includes("custom") || d.includes("duty")) return "CUSTOMS";
   if (d.includes("freight")) return "FREIGHT";
   if (d.includes("insurance")) return "INSURANCE";
-  return "SERVICE";
-}
+  return "SHIPPING TYPE";
+  }
 
 // Helper: map invoice status to badge color (matches PENDING=orange reference)
 function statusBadgeColor(status: string): [number, number, number] {
@@ -205,7 +205,17 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
     .catch(() => null);
   const currency = settings?.currency || "USD";
   const money = (value: number | null | undefined) => formatCurrency(value, currency);
-  const logoData = await loadImageData(data.logoUrl || "/logo.svg");
+  const logoCandidates = [
+    data.logoUrl,
+    settings?.logoUrl,
+    "/api/settings/logo",
+    "/logo.svg",
+  ].filter((url): url is string => Boolean(url));
+  let logoData: Awaited<ReturnType<typeof loadImageData>> = null;
+  for (const logoUrl of logoCandidates) {
+    logoData = await loadImageData(logoUrl);
+    if (logoData) break;
+  }
 
   // -------------------------------------------------------------------------
   // 1. TOP GOLD BAR (full width, ~10mm tall)
