@@ -109,8 +109,8 @@ function SidebarContent({
           Brand Values
         </p>
         <p className="text-xs text-[#374151] leading-relaxed">
-          Transparency<span className="text-[#D4AF37] mx-1.5">•</span>
-          Precision<span className="text-[#D4AF37] mx-1.5">•</span>
+          Transparency<span className="text-[#D4AF37] mx-1.5">·</span>
+          Precision<span className="text-[#D4AF37] mx-1.5">·</span>
           Reliability
         </p>
       </div>

@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ExportButtons } from "@/components/shared/ExportButtons";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import {
   FileText,
@@ -82,6 +84,7 @@ export function InvoicesView() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -91,18 +94,26 @@ export function InvoicesView() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [iRes, cRes, vRes] = await Promise.all([
-      fetch("/api/invoices"),
-      fetch("/api/customers"),
-      fetch("/api/vehicles"),
-    ]);
-    const i = await iRes.json();
-    const c = await cRes.json();
-    const v = await vRes.json();
-    setInvoices(i);
-    setCustomers(c);
-    setVehicles(v);
-    setLoading(false);
+    setError(false);
+    try {
+      const [iRes, cRes, vRes] = await Promise.all([
+        fetch("/api/invoices"),
+        fetch("/api/customers"),
+        fetch("/api/vehicles"),
+      ]);
+      if (!iRes.ok || !cRes.ok || !vRes.ok)
+        throw new Error("Failed to load invoices");
+      const i = await iRes.json();
+      const c = await cRes.json();
+      const v = await vRes.json();
+      setInvoices(i);
+      setCustomers(c);
+      setVehicles(v);
+    } catch (e) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -242,7 +253,11 @@ export function InvoicesView() {
       </div>
 
       <div className="rounded-xl border border-[#E5E7EB] bg-white overflow-hidden">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <TableSkeleton rows={6} />
+        ) : error ? (
+          <ErrorState onRetry={load} />
+        ) : filtered.length === 0 ? (
           <EmptyState
             icon={FileText}
             title="No invoices yet"
@@ -394,7 +409,12 @@ export function InvoicesView() {
             </div>
           </SheetHeader>
           {!detailData ? (
-            <div className="p-8 text-center text-sm text-[#9CA3AF]">Loading…</div>
+            <div className="p-6 space-y-3">
+              <div className="h-4 w-1/3 bg-[#F3F4F6] rounded animate-pulse" />
+              <div className="h-4 w-2/3 bg-[#F3F4F6] rounded animate-pulse" />
+              <div className="h-4 w-1/2 bg-[#F3F4F6] rounded animate-pulse" />
+              <div className="h-4 w-3/4 bg-[#F3F4F6] rounded animate-pulse" />
+            </div>
           ) : (
             <div className="p-5 space-y-4">
               <div className="grid grid-cols-2 gap-3">

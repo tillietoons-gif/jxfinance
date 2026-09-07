@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ExportButtons } from "@/components/shared/ExportButtons";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import {
   Users,
   Plus,
@@ -55,16 +57,24 @@ interface Customer {
 export function CustomersView() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/customers");
-    const data = await res.json();
-    setCustomers(data);
-    setLoading(false);
+    setError(false);
+    try {
+      const res = await fetch("/api/customers");
+      if (!res.ok) throw new Error("Failed to load customers");
+      const data = await res.json();
+      setCustomers(data);
+    } catch (e) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -146,7 +156,15 @@ export function CustomersView() {
         />
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="rounded-xl border border-[#E5E7EB] bg-white">
+          <TableSkeleton rows={6} />
+        </div>
+      ) : error ? (
+        <div className="rounded-xl border border-[#E5E7EB] bg-white">
+          <ErrorState onRetry={load} />
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-[#E5E7EB] bg-white">
           <EmptyState
             icon={Users}

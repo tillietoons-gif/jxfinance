@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ExportButtons } from "@/components/shared/ExportButtons";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { TypeBadge } from "@/components/shared/StatusBadge";
 import {
   BookOpen,
@@ -71,6 +73,7 @@ export function LedgersView() {
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Ledger | null>(null);
@@ -79,15 +82,22 @@ export function LedgersView() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [lRes, cRes] = await Promise.all([
-      fetch("/api/ledgers"),
-      fetch("/api/customers"),
-    ]);
-    const l = await lRes.json();
-    const c = await cRes.json();
-    setLedgers(l);
-    setCustomers(c);
-    setLoading(false);
+    setError(false);
+    try {
+      const [lRes, cRes] = await Promise.all([
+        fetch("/api/ledgers"),
+        fetch("/api/customers"),
+      ]);
+      if (!lRes.ok || !cRes.ok) throw new Error("Failed to load ledgers");
+      const l = await lRes.json();
+      const c = await cRes.json();
+      setLedgers(l);
+      setCustomers(c);
+    } catch (e) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -248,7 +258,11 @@ export function LedgersView() {
       </div>
 
       <div className="rounded-xl border border-[#E5E7EB] bg-white overflow-hidden">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <TableSkeleton rows={6} />
+        ) : error ? (
+          <ErrorState onRetry={load} />
+        ) : filtered.length === 0 ? (
           <EmptyState
             icon={BookOpen}
             title="No ledgers yet"
@@ -370,7 +384,12 @@ export function LedgersView() {
               onChanged={refreshDetail}
             />
           ) : (
-            <div className="p-8 text-center text-sm text-[#9CA3AF]">Loading…</div>
+            <div className="p-6 space-y-3">
+              <div className="h-4 w-1/3 bg-[#F3F4F6] rounded animate-pulse" />
+              <div className="h-4 w-2/3 bg-[#F3F4F6] rounded animate-pulse" />
+              <div className="h-4 w-1/2 bg-[#F3F4F6] rounded animate-pulse" />
+              <div className="h-4 w-3/4 bg-[#F3F4F6] rounded animate-pulse" />
+            </div>
           )}
         </SheetContent>
       </Sheet>
@@ -439,12 +458,12 @@ function LedgerDetail({
 
   // compute running balance (newest first)
   const txs = ledger.transactions || [];
+  const withRunning: any[] = [];
   let running = ledger.balance;
-  const withRunning = txs.map((t) => {
-    const r = running;
+  for (const t of txs) {
+    withRunning.push({ ...t, runningBalance: running });
     running = t.type === "DEBIT" ? running - t.amount : running + t.amount;
-    return { ...t, runningBalance: r };
-  });
+  }
 
   return (
     <div className="px-5 py-4 space-y-4">

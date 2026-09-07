@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { KpiCard } from "@/components/shared/KpiCard";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { ErrorState } from "@/components/shared/ErrorState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Car,
+  BookOpen,
   Users,
   DollarSign,
   TrendingUp,
@@ -50,20 +53,31 @@ export function DashboardView({
 }) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setLoading(true);
+    setError(false);
     fetch("/api/dashboard")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load dashboard");
+        return r.json();
+      })
       .then((d) => setData(d))
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    load();
+  }, [load]);
+
   if (loading) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-6">
         <PageHeader
           title="Dashboard"
-          subtitle="Loading overview…"
+          subtitle="Loading overview."
           icon={LayoutDashboard}
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -74,6 +88,22 @@ export function DashboardView({
             />
           ))}
         </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="h-[280px] bg-white rounded-xl border border-[#E5E7EB] animate-pulse" />
+          <div className="h-[280px] lg:col-span-2 bg-white rounded-xl border border-[#E5E7EB] animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="h-[240px] bg-white rounded-xl border border-[#E5E7EB] animate-pulse" />
+          <div className="h-[240px] bg-white rounded-xl border border-[#E5E7EB] animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <ErrorState onRetry={load} />
       </div>
     );
   }
@@ -110,7 +140,7 @@ export function DashboardView({
       />
 
       {/* KPI Cards — JACXI brand: primary=jet black with gold, others snow-white with gold borders */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           label="Net Profit"
           value={formatCurrency(f.totalProfit)}
@@ -298,9 +328,7 @@ export function DashboardView({
                 </div>
               ))}
               {(data?.recentVehicles || []).length === 0 && (
-                <div className="px-4 py-8 text-center text-sm text-[#9CA3AF]">
-                  No vehicles yet
-                </div>
+                <EmptyState icon={Car} title="No vehicles yet" />
               )}
             </div>
           </CardContent>
@@ -357,9 +385,7 @@ export function DashboardView({
                 </div>
               ))}
               {(data?.customerLedgers || []).length === 0 && (
-                <div className="px-4 py-8 text-center text-sm text-[#9CA3AF]">
-                  No ledgers yet
-                </div>
+                <EmptyState icon={BookOpen} title="No ledgers yet" />
               )}
             </div>
           </CardContent>

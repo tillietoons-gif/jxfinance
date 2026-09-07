@@ -183,6 +183,27 @@ html, body {
   animation: fadeIn 0.2s ease-out;
 }
 
+/* Staggered entrance for direct children (lists, KPI grids) */
+@media (prefers-reduced-motion: no-preference) {
+  .stagger > * {
+    animation: fadeIn 0.3s ease-out both;
+  }
+  .stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger > *:nth-child(2) { animation-delay: 60ms; }
+  .stagger > *:nth-child(3) { animation-delay: 120ms; }
+  .stagger > *:nth-child(4) { animation-delay: 180ms; }
+  .stagger > *:nth-child(5) { animation-delay: 240ms; }
+  .stagger > *:nth-child(n+6) { animation-delay: 240ms; }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .stagger > * {
+    animation: none;
+  }
+}
+
 /* === JACXI Brand Utilities — Gilded Minimalism === */
 
 /* Wide letter-spacing for editorial labels (matches brand book "BRAND BOOK" treatment) */
@@ -247,24 +268,6 @@ html, body {
 }
 .thin-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(212, 175, 55, 0.5);
-}
-
-/* Hide default scrollbar */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Subtle fade-in */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fade-in {
-  animation: fadeIn 0.2s ease-out;
 }
 
 /* Premium gold underline indicator for active nav items */

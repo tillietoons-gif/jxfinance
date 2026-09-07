@@ -5,6 +5,8 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { KpiCard } from "@/components/shared/KpiCard";
 import { ExportButtons } from "@/components/shared/ExportButtons";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import {
   Car,
@@ -94,6 +96,7 @@ export function VehiclesView() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -104,15 +107,22 @@ export function VehiclesView() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [vRes, cRes] = await Promise.all([
-      fetch("/api/vehicles"),
-      fetch("/api/customers"),
-    ]);
-    const v = await vRes.json();
-    const c = await cRes.json();
-    setVehicles(v);
-    setCustomers(c);
-    setLoading(false);
+    setError(false);
+    try {
+      const [vRes, cRes] = await Promise.all([
+        fetch("/api/vehicles"),
+        fetch("/api/customers"),
+      ]);
+      if (!vRes.ok || !cRes.ok) throw new Error("Failed to load vehicles");
+      const v = await vRes.json();
+      const c = await cRes.json();
+      setVehicles(v);
+      setCustomers(c);
+    } catch (e) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -275,7 +285,11 @@ export function VehiclesView() {
 
       {/* Table */}
       <div className="rounded-xl border border-[#E5E7EB] bg-white overflow-hidden">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <TableSkeleton rows={6} />
+        ) : error ? (
+          <ErrorState onRetry={load} />
+        ) : filtered.length === 0 ? (
           <EmptyState
             icon={Car}
             title="No vehicles yet"
@@ -395,8 +409,11 @@ export function VehiclesView() {
           </SheetHeader>
 
           {detailLoading || !detailData ? (
-            <div className="p-8 text-center text-sm text-[#9CA3AF]">
-              Loading…
+            <div className="p-6 space-y-3">
+              <div className="h-4 w-1/3 bg-[#F3F4F6] rounded animate-pulse" />
+              <div className="h-4 w-2/3 bg-[#F3F4F6] rounded animate-pulse" />
+              <div className="h-4 w-1/2 bg-[#F3F4F6] rounded animate-pulse" />
+              <div className="h-4 w-3/4 bg-[#F3F4F6] rounded animate-pulse" />
             </div>
           ) : (
             <div className="px-5 py-4 space-y-4">

@@ -5,6 +5,8 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { KpiCard } from "@/components/shared/KpiCard";
 import { ExportButtons } from "@/components/shared/ExportButtons";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import {
   CreditCard,
   Plus,
@@ -67,23 +69,32 @@ export function PaymentsView() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [pRes, cRes, vRes] = await Promise.all([
-      fetch("/api/payments"),
-      fetch("/api/customers"),
-      fetch("/api/vehicles"),
-    ]);
-    const p = await pRes.json();
-    const c = await cRes.json();
-    const v = await vRes.json();
-    setPayments(p);
-    setCustomers(c);
-    setVehicles(v);
-    setLoading(false);
+    setError(false);
+    try {
+      const [pRes, cRes, vRes] = await Promise.all([
+        fetch("/api/payments"),
+        fetch("/api/customers"),
+        fetch("/api/vehicles"),
+      ]);
+      if (!pRes.ok || !cRes.ok || !vRes.ok)
+        throw new Error("Failed to load payments");
+      const p = await pRes.json();
+      const c = await cRes.json();
+      const v = await vRes.json();
+      setPayments(p);
+      setCustomers(c);
+      setVehicles(v);
+    } catch (e) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -188,7 +199,11 @@ export function PaymentsView() {
       </div>
 
       <div className="rounded-xl border border-[#E5E7EB] bg-white overflow-hidden">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <TableSkeleton rows={6} />
+        ) : error ? (
+          <ErrorState onRetry={load} />
+        ) : filtered.length === 0 ? (
           <EmptyState
             icon={CreditCard}
             title="No payments recorded"

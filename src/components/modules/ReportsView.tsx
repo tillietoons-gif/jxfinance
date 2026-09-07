@@ -230,7 +230,7 @@ function PnlReport() {
       </Card>
 
       {loading ? (
-        <div className="h-32 bg-white rounded-xl border animate-pulse" />
+        <div className="h-32 bg-white rounded-xl border border-[#E5E7EB] animate-pulse" />
       ) : data ? (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -438,7 +438,12 @@ function VehicleMarginsReport() {
     });
   };
 
-  if (loading) return <div className="h-32 bg-white rounded-xl border animate-pulse" />;
+  if (loading)
+    return (
+      <div className="space-y-4">
+        <div className="h-32 bg-white rounded-xl border border-[#E5E7EB] animate-pulse" />
+      </div>
+    );
   if (!data) return null;
 
   return (
@@ -640,7 +645,12 @@ function AgedReceivablesReport() {
     });
   };
 
-  if (loading) return <div className="h-32 bg-white rounded-xl border animate-pulse" />;
+  if (loading)
+    return (
+      <div className="space-y-4">
+        <div className="h-32 bg-white rounded-xl border border-[#E5E7EB] animate-pulse" />
+      </div>
+    );
   if (!data) return null;
 
   const buckets = data.buckets || {};

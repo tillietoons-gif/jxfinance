@@ -73,7 +73,11 @@ export function KpiCard({
               <p
                 className={cn(
                   "text-xs font-semibold",
-                  trend.positive ? "text-[#D4AF37]" : "text-[#DC2626]"
+                  trend.positive
+                    ? variant === "primary"
+                      ? "text-[#D4AF37]"
+                      : "text-[#92730E]"
+                    : "text-[#DC2626]"
                 )}
               >
                 {trend.value}
