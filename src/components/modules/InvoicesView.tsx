@@ -520,7 +520,7 @@ export function InvoicesView() {
                     vehicle: detailData.vehicle,
                     items: detailData.items,
                     expenses: detailData.expenses,
-                    logoUrl: "/api/settings/logo",
+                    logoUrl: "/logo.svg",
                   })
                 }
               >
