@@ -649,6 +649,49 @@ export function generateLedgerStatementPdf(ledger: any) {
   doc.save(`Ledger-Statement-${ledger.name.replace(/\s+/g, "_")}.pdf`);
 }
 
+export function generateCustomerStatementPdf(customer: any) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  header(doc, "CUSTOMER STATEMENT", customer.name);
+  let y = 46;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(...JACXI.black);
+  doc.text(customer.name, 14, y);
+  y += 6;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(...JACXI.medGrey);
+  doc.text(customer.companyName || customer.email || "", 14, y);
+
+  const invoices = (customer.invoices || []).filter((invoice: any) => invoice.status !== "DRAFT");
+  const payments = customer.payments || [];
+  const invoiced = invoices.reduce((sum: number, invoice: any) => sum + Number(invoice.total || 0), 0);
+  const paid = payments.reduce((sum: number, payment: any) => sum + Number(payment.amount || 0), 0);
+  y += 14;
+  autoTable(doc, {
+    startY: y,
+    head: [["Account Summary", "Amount"]],
+    body: [["Invoiced", formatCurrency(invoiced)], ["Payments received", formatCurrency(paid)], ["Balance due", formatCurrency(invoiced - paid)]],
+    theme: "grid",
+    headStyles: { fillColor: JACXI.black, textColor: 255 },
+    styles: { fontSize: 9, cellPadding: 3 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 10;
+  autoTable(doc, {
+    startY: y,
+    head: [["Date", "Type", "Reference", "Amount"]],
+    body: [
+      ...invoices.map((invoice: any) => [formatDate(invoice.issueDate), "Invoice", invoice.invoiceNumber, formatCurrency(invoice.total)]),
+      ...payments.map((payment: any) => [formatDate(payment.createdAt), "Payment", payment.referenceNo || payment.method, `-${formatCurrency(payment.amount)}`]),
+    ].sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+    theme: "striped",
+    headStyles: { fillColor: JACXI.gold, textColor: JACXI.black },
+    styles: { fontSize: 8, cellPadding: 2.5 },
+  });
+  footer(doc);
+  doc.save(`Customer-Statement-${customer.name.replace(/\s+/g, "_")}.pdf`);
+}
+
 // =============================================================================
 // === GENERIC REPORT PDF (uses AUTOLOGIX branding) ===
 // =============================================================================

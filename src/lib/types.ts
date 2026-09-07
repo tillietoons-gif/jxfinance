@@ -26,6 +26,19 @@ export const INVOICE_STATUSES = [
 ] as const;
 export type InvoiceStatus = (typeof INVOICE_STATUSES)[number];
 
+export function calculateInvoiceStatus(
+  status: string,
+  dueDate: Date | string,
+  total: number,
+  paid: number
+): InvoiceStatus {
+  if (status === "DRAFT") return "DRAFT";
+  if (total > 0 && paid >= total) return "PAID";
+  if (paid > 0) return "PARTIALLY_PAID";
+  if (new Date(dueDate).getTime() < Date.now()) return "OVERDUE";
+  return "ISSUED";
+}
+
 export const PAYMENT_METHODS = [
   "Bank Transfer",
   "Cash",

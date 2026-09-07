@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { calculateInvoiceStatus } from "@/lib/types";
+import { paymentSchema, serverError, validationError, writeAuditLog } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,28 +14,31 @@ export async function GET(req: NextRequest) {
         ...(vehicleId ? { vehicleId } : {}),
       },
       orderBy: { createdAt: "desc" },
-      include: { customer: true, vehicle: true },
+      include: { customer: true, vehicle: true, invoice: true },
     });
     return NextResponse.json(payments);
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return serverError(e);
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const amount = Number(body.amount);
+    const parsed = paymentSchema.safeParse(await req.json());
+    if (!parsed.success) return validationError(parsed.error);
+    const body = parsed.data;
+    const amount = body.amount;
     const payment = await db.payment.create({
       data: {
         customerId: body.customerId,
         vehicleId: body.vehicleId || null,
+        invoiceId: body.invoiceId || null,
         amount,
         method: body.method,
         referenceNo: body.referenceNo || null,
         notes: body.notes || null,
       },
-      include: { customer: true, vehicle: true },
+      include: { customer: true, vehicle: true, invoice: true },
     });
 
     // Credit the customer ledger (reduce what they owe)
@@ -67,19 +72,27 @@ export async function POST(req: NextRequest) {
       });
       if (invoice) {
         const totalPaid = await db.payment.aggregate({
-          where: { customerId: payment.customerId },
+          where: { invoiceId: invoice.id },
           _sum: { amount: true },
         });
-        // simplified - just mark as partially paid
+        const paid = totalPaid._sum.amount || 0;
         await db.invoice.update({
           where: { id: invoice.id },
-          data: { status: "PARTIALLY_PAID" },
+          data: { status: calculateInvoiceStatus(invoice.status, invoice.dueDate, invoice.total, paid) },
         });
       }
     }
 
+    await writeAuditLog({
+      entity: "Payment",
+      entityId: payment.id,
+      customerId: payment.customerId,
+      action: "created",
+      details: `${payment.amount} received via ${payment.method}`,
+    });
+
     return NextResponse.json(payment);
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return serverError(e);
   }
 }

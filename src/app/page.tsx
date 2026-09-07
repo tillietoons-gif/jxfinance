@@ -10,6 +10,7 @@ import {
   FileText,
   BarChart3,
   Menu,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -24,6 +25,7 @@ import { LedgersView } from "@/components/modules/LedgersView";
 import { PaymentsView } from "@/components/modules/PaymentsView";
 import { InvoicesView } from "@/components/modules/InvoicesView";
 import { ReportsView } from "@/components/modules/ReportsView";
+import { SettingsView } from "@/components/modules/SettingsView";
 
 type View =
   | "dashboard"
@@ -32,7 +34,8 @@ type View =
   | "ledgers"
   | "payments"
   | "invoices"
-  | "reports";
+  | "reports"
+  | "settings";
 
 const NAV: { id: View; label: string; icon: any; description: string }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, description: "Overview & KPIs" },
@@ -42,6 +45,7 @@ const NAV: { id: View; label: string; icon: any; description: string }[] = [
   { id: "payments", label: "Payments", icon: CreditCard, description: "Payment recording" },
   { id: "invoices", label: "Invoices", icon: FileText, description: "Billing & invoicing" },
   { id: "reports", label: "Reports", icon: BarChart3, description: "Analytics & exports" },
+  { id: "settings", label: "Settings", icon: Settings, description: "Company defaults" },
 ];
 
 function SidebarContent({
@@ -182,6 +186,7 @@ export default function Home() {
             {view === "payments" && <PaymentsView />}
             {view === "invoices" && <InvoicesView />}
             {view === "reports" && <ReportsView />}
+            {view === "settings" && <SettingsView />}
           </div>
         </main>
       </div>

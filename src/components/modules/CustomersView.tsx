@@ -50,6 +50,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { formatDate, formatCurrency } from "@/lib/types";
 import { exportToExcel } from "@/lib/excel";
+import { generateCustomerStatementPdf } from "@/lib/pdf";
 
 interface Customer {
   id: string;
@@ -364,8 +365,16 @@ function CustomerDetailSheet({
   const payments = data?.payments || [];
   const vehicles = data?.vehicles || [];
   const ledgers = data?.ledgers || [];
+  const [notes, setNotes] = useState<any[]>([]);
+  const [noteText, setNoteText] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
+  useEffect(() => {
+    setNotes(data?.notes || []);
+    setNoteText("");
+  }, [data]);
   const totalInvoiced = invoices.reduce(
-    (sum: number, invoice: any) => sum + Number(invoice.total || 0),
+    (sum: number, invoice: any) =>
+      invoice.status === "DRAFT" ? sum : sum + Number(invoice.total || 0),
     0
   );
   const totalPaid = payments.reduce(
@@ -395,6 +404,13 @@ function CustomerDetailSheet({
               <DetailMetric label="Invoiced" value={formatCurrency(totalInvoiced)} />
               <DetailMetric label="Paid" value={formatCurrency(totalPaid)} />
             </div>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => generateCustomerStatementPdf(data)}
+            >
+              Download customer statement PDF
+            </Button>
 
             <div className="space-y-1 text-sm text-[#4B5563]">
               {customer?.email && <p>{customer.email}</p>}
@@ -403,11 +419,12 @@ function CustomerDetailSheet({
             </div>
 
             <Tabs defaultValue="invoices">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="invoices">Invoices</TabsTrigger>
                 <TabsTrigger value="payments">Payments</TabsTrigger>
                 <TabsTrigger value="vehicles">Vehicles</TabsTrigger>
                 <TabsTrigger value="ledgers">Ledgers</TabsTrigger>
+                <TabsTrigger value="notes">Notes</TabsTrigger>
               </TabsList>
 
               <TabsContent value="invoices" className="mt-4 space-y-2">
@@ -473,6 +490,51 @@ function CustomerDetailSheet({
                     <p className="mt-1 text-xs text-[#6B7280]">
                       {ledger.transactions?.length || 0} transaction(s)
                     </p>
+                  </div>
+                ))}
+              </TabsContent>
+
+              <TabsContent value="notes" className="mt-4 space-y-3">
+                <div className="flex gap-2">
+                  <Textarea
+                    value={noteText}
+                    onChange={(event) => setNoteText(event.target.value)}
+                    placeholder="Add a customer note…"
+                    rows={2}
+                  />
+                  <Button
+                    className="self-end"
+                    disabled={!noteText.trim() || savingNote}
+                    onClick={async () => {
+                      if (!customer) return;
+                      setSavingNote(true);
+                      try {
+                        const response = await fetch(`/api/customers/${customer.id}/notes`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ content: noteText }),
+                        });
+                        if (!response.ok) throw new Error("Failed to save note");
+                        const note = await response.json();
+                        setNotes((current) => [note, ...current]);
+                        setNoteText("");
+                        toast.success("Note added");
+                      } catch (error: any) {
+                        toast.error(error.message || "Failed to save note");
+                      } finally {
+                        setSavingNote(false);
+                      }
+                    }}
+                  >
+                    {savingNote ? "Saving…" : "Add"}
+                  </Button>
+                </div>
+                {notes.length === 0 ? (
+                  <DetailEmpty text="No notes for this customer" />
+                ) : notes.map((note: any) => (
+                  <div key={note.id} className="rounded-lg border p-3">
+                    <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+                    <p className="mt-2 text-xs text-[#6B7280]">{formatDate(note.createdAt)}</p>
                   </div>
                 ))}
               </TabsContent>

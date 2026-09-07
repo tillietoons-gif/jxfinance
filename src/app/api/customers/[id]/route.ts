@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { customerSchema, serverError, validationError } from "@/lib/api";
 
 export async function GET(
   _req: NextRequest,
@@ -16,13 +17,19 @@ export async function GET(
         },
         invoices: { orderBy: { createdAt: "desc" } },
         payments: { orderBy: { createdAt: "desc" } },
+        notes: { orderBy: { createdAt: "desc" } },
+        auditLogs: { orderBy: { createdAt: "desc" } },
       },
     });
     if (!customer)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json(customer);
+    const invoiced = customer.invoices
+      .filter((invoice) => invoice.status !== "DRAFT")
+      .reduce((sum, invoice) => sum + invoice.total, 0);
+    const paid = customer.payments.reduce((sum, payment) => sum + payment.amount, 0);
+    return NextResponse.json({ ...customer, balance: invoiced - paid, invoiced, paid });
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return serverError(e);
   }
 }
 
@@ -32,7 +39,9 @@ export async function PUT(
 ) {
   const { id } = await params;
   try {
-    const body = await req.json();
+    const parsed = customerSchema.safeParse(await req.json());
+    if (!parsed.success) return validationError(parsed.error);
+    const body = parsed.data;
     const updated = await db.customer.update({
       where: { id },
       data: {
@@ -45,7 +54,7 @@ export async function PUT(
     });
     return NextResponse.json(updated);
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return serverError(e);
   }
 }
 

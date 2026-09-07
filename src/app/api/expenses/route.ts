@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { expenseSchema, serverError, validationError, writeAuditLog } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,21 +13,26 @@ export async function GET(req: NextRequest) {
     });
     return NextResponse.json(expenses);
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return serverError(e);
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const customerCharge = Number(body.customerCharge || 0);
-    const companyCost = Number(body.companyCost || 0);
+    const parsed = expenseSchema.safeParse(await req.json());
+    if (!parsed.success) return validationError(parsed.error);
+    const body = parsed.data;
+    const customerCharge = body.customerCharge;
+    const companyCost = body.companyCost;
     const profit = customerCharge - companyCost;
 
     const expense = await db.expense.create({
       data: {
         vehicleId: body.vehicleId,
         title: body.title,
+        category: body.category || null,
+        vendorId: body.vendorId || null,
+        receiptUrl: body.receiptUrl || null,
         customerCharge,
         companyCost,
         profit,
@@ -90,8 +96,16 @@ export async function POST(req: NextRequest) {
       ]);
     }
 
+    await writeAuditLog({
+      entity: "Expense",
+      entityId: expense.id,
+      customerId: expense.vehicle.customerId,
+      action: "created",
+      details: `${expense.title} created with customer charge ${customerCharge} and company cost ${companyCost}`,
+    });
+
     return NextResponse.json(expense);
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return serverError(e);
   }
 }

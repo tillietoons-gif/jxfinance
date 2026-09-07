@@ -23,6 +23,8 @@ model Customer {
   ledgers      Ledger[]
   invoices     Invoice[]
   payments     Payment[]
+  notes        CustomerNote[]
+  auditLogs    AuditLog[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -81,6 +83,10 @@ model Expense {
   companyCost     Float     @default(0)
   profit          Float     @default(0)
   notes           String?
+  category        String?
+  vendorId        String?
+  vendor          Vendor?   @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  receiptUrl      String?
   invoiceId       String?
   invoice         Invoice?  @relation(fields: [invoiceId], references: [id])
   createdAt       DateTime  @default(now())
@@ -94,6 +100,8 @@ model Payment {
   customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
   vehicleId   String?
   vehicle     Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  invoiceId   String?
+  invoice     Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   amount      Float
   method      String
   referenceNo String?
@@ -117,6 +125,7 @@ model Invoice {
   total         Float         @default(0)
   items         InvoiceItem[]
   expenses      Expense[]
+  payments      Payment[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 }
@@ -130,4 +139,50 @@ model InvoiceItem {
   quantity    Int      @default(1)
   unitPrice   Float    @default(0)
   total       Float    @default(0)
+}
+
+model Vendor {
+  id        String    @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  notes     String?
+  expenses  Expense[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model CustomerNote {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model AuditLog {
+  id         String    @id @default(cuid())
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  entity     String
+  entityId   String
+  action     String
+  details    String?
+  createdAt  DateTime  @default(now())
+}
+
+model AppSettings {
+  id                   String   @id @default("default")
+  companyName          String   @default("JACXI Shipping")
+  companyEmail         String?
+  companyPhone         String?
+  companyAddress       String?
+  logoUrl              String?
+  currency             String   @default("USD")
+  taxRate              Float    @default(0)
+  invoicePrefix        String   @default("INV")
+  defaultVehicleStatus String   @default("PENDING")
+  defaultPaymentMethod String   @default("Bank Transfer")
+  updatedAt            DateTime @updatedAt
 }

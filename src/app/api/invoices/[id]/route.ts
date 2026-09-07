@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { calculateInvoiceStatus } from "@/lib/types";
+import { invoiceSchema, serverError, validationError } from "@/lib/api";
 
 export async function GET(
   _req: NextRequest,
@@ -14,11 +16,17 @@ export async function GET(
         vehicle: { include: { expenses: true } },
         items: true,
         expenses: true,
+        payments: true,
       },
     });
     if (!invoice)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json(invoice);
+    const paid = invoice.payments.reduce((sum, payment) => sum + payment.amount, 0);
+    return NextResponse.json({
+      ...invoice,
+      paid,
+      status: calculateInvoiceStatus(invoice.status, invoice.dueDate, invoice.total, paid),
+    });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }
@@ -30,7 +38,9 @@ export async function PUT(
 ) {
   const { id } = await params;
   try {
-    const body = await req.json();
+    const parsed = invoiceSchema.safeParse(await req.json());
+    if (!parsed.success) return validationError(parsed.error);
+    const body = parsed.data;
     const existing = await db.invoice.findUnique({
       where: { id },
       include: { items: true },
@@ -55,16 +65,16 @@ export async function PUT(
         customerId: body.customerId,
         vehicleId: body.vehicleId || null,
         status: body.status,
-        dueDate: new Date(body.dueDate),
+        dueDate: body.dueDate,
         subtotal,
         tax,
         total,
         items: {
           create: items.map((it: any) => ({
             description: it.description,
-            quantity: Number(it.quantity || 1),
-            unitPrice: Number(it.unitPrice || 0),
-            total: Number(it.total || it.unitPrice * it.quantity || 0),
+            quantity: it.quantity,
+            unitPrice: it.unitPrice,
+            total: it.total ?? it.unitPrice * it.quantity,
           })),
         },
       },
@@ -72,7 +82,7 @@ export async function PUT(
     });
     return NextResponse.json(updated);
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return serverError(e);
   }
 }
 
@@ -85,6 +95,6 @@ export async function DELETE(
     await db.invoice.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return serverError(e);
   }
 }
