@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { calculateInvoiceStatus, generateInvoiceNumber } from "@/lib/types";
 import { invoiceSchema, serverError, validationError, writeAuditLog } from "@/lib/api";
+import { calculateInvoiceLedgerDebit, reconcileInvoiceLedger } from "@/lib/invoice-accounting";
 
 export async function GET(req: NextRequest) {
   try {
@@ -44,68 +45,64 @@ export async function POST(req: NextRequest) {
       (s: number, it: any) => s + Number(it.total || it.unitPrice * it.quantity || 0),
       0
     );
-    const expenseIds = body.expenseIds || [];
+    const expenseIds = [...new Set(body.expenseIds || [])];
     const attachedExpenses = expenseIds.length
       ? await db.expense.findMany({
           where: { id: { in: expenseIds }, invoiceId: null, vehicle: { customerId: body.customerId } },
           select: { customerCharge: true },
         })
       : [];
+    if (attachedExpenses.length !== expenseIds.length) {
+      return NextResponse.json(
+        { error: "One or more selected expenses are unavailable or belong to another invoice" },
+        { status: 409 }
+      );
+    }
     const expenseSubtotal = attachedExpenses.reduce((sum, expense) => sum + expense.customerCharge, 0);
     const subtotal = itemSubtotal + expenseSubtotal;
     const tax = Number(body.tax || 0);
     const total = subtotal + tax;
-    const invoice = await db.invoice.create({
-      data: {
-        invoiceNumber: body.invoiceNumber || generateInvoiceNumber(settings?.invoicePrefix || "INV"),
-        customerId: body.customerId,
-        vehicleId: body.vehicleId || null,
-        status: body.status,
-        dueDate: body.dueDate,
-        subtotal,
-        tax,
-        total,
-        items: {
-          create: items.map((it: any) => ({
-            description: it.description,
-            quantity: it.quantity,
-            unitPrice: it.unitPrice,
-            total: it.total ?? it.unitPrice * it.quantity,
-          })),
+    const invoice = await db.$transaction(async (tx) => {
+      const created = await tx.invoice.create({
+        data: {
+          invoiceNumber: body.invoiceNumber || generateInvoiceNumber(settings?.invoicePrefix || "INV"),
+          customerId: body.customerId,
+          vehicleId: body.vehicleId || null,
+          status: body.status,
+          ...(body.issueDate ? { issueDate: body.issueDate } : {}),
+          dueDate: body.dueDate,
+          subtotal,
+          tax,
+          total,
+          items: {
+            create: items.map((it: any) => ({
+              description: it.description,
+              quantity: it.quantity,
+              unitPrice: it.unitPrice,
+              total: it.total ?? it.unitPrice * it.quantity,
+            })),
+          },
         },
-      },
-      include: { items: true, customer: true, vehicle: true },
-    });
-    if (expenseIds.length > 0) {
-      await db.expense.updateMany({
-        where: { id: { in: expenseIds }, invoiceId: null, vehicle: { customerId: invoice.customerId } },
-        data: { invoiceId: invoice.id },
+        include: { items: true, customer: true, vehicle: true },
       });
-    }
-
-    // Add invoice total as a DEBIT to the customer ledger
-    if (invoice.status === "ISSUED" && invoice.total > 0) {
-      const ledger = await db.ledger.findFirst({
-        where: { customerId: invoice.customerId, type: "CUSTOMER" },
-      });
-      if (ledger) {
-        await db.$transaction([
-          db.ledgerTransaction.create({
-            data: {
-              ledgerId: ledger.id,
-              amount: invoice.total,
-              type: "DEBIT",
-              description: `Invoice ${invoice.invoiceNumber}`,
-              referenceId: invoice.id,
-            },
-          }),
-          db.ledger.update({
-            where: { id: ledger.id },
-            data: { balance: ledger.balance + invoice.total },
-          }),
-        ]);
+      if (expenseIds.length > 0) {
+        const attached = await tx.expense.updateMany({
+          where: { id: { in: expenseIds }, invoiceId: null, vehicle: { customerId: created.customerId } },
+          data: { invoiceId: created.id },
+        });
+        if (attached.count !== expenseIds.length) {
+          throw new Error("Selected expenses changed before invoice creation completed");
+        }
       }
-    }
+      await reconcileInvoiceLedger(
+        tx,
+        created.id,
+        null,
+        created.customerId,
+        calculateInvoiceLedgerDebit(created.status, created.total, expenseSubtotal)
+      );
+      return created;
+    });
     await writeAuditLog({
       entity: "Invoice",
       entityId: invoice.id,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { z } from "zod";
 import { expenseSchema, writeAuditLog } from "@/lib/api";
+import { calculateInvoiceLedgerDebit, reconcileInvoiceLedger } from "@/lib/invoice-accounting";
 
 export async function PUT(
   req: NextRequest,
@@ -124,6 +125,33 @@ export async function PUT(
       }
     }
 
+    if (updated.invoiceId) {
+      await db.$transaction(async (tx) => {
+        const invoice = await tx.invoice.findUnique({
+          where: { id: updated.invoiceId as string },
+          include: { items: true, expenses: true },
+        });
+        if (!invoice) return;
+        const itemSubtotal = invoice.items.reduce((sum, item) => sum + item.total, 0);
+        const expenseSubtotal = invoice.expenses.reduce(
+          (sum, expense) => sum + expense.customerCharge,
+          0
+        );
+        const total = itemSubtotal + expenseSubtotal + invoice.tax;
+        await tx.invoice.update({
+          where: { id: invoice.id },
+          data: { subtotal: itemSubtotal + expenseSubtotal, total },
+        });
+        await reconcileInvoiceLedger(
+          tx,
+          invoice.id,
+          invoice.customerId,
+          invoice.customerId,
+          calculateInvoiceLedgerDebit(invoice.status, total, expenseSubtotal)
+        );
+      });
+    }
+
     return NextResponse.json(updated);
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
@@ -178,12 +206,19 @@ export async function PATCH(
         (sum, expense) => sum + expense.customerCharge,
         0
       );
-      await db.invoice.update({
-        where: { id: invoiceId },
-        data: {
-          subtotal: itemSubtotal + expenseSubtotal,
-          total: itemSubtotal + expenseSubtotal + invoice.tax,
-        },
+      const total = itemSubtotal + expenseSubtotal + invoice.tax;
+      await db.$transaction(async (tx) => {
+        await tx.invoice.update({
+          where: { id: invoiceId },
+          data: { subtotal: itemSubtotal + expenseSubtotal, total },
+        });
+        await reconcileInvoiceLedger(
+          tx,
+          invoice.id,
+          invoice.customerId,
+          invoice.customerId,
+          calculateInvoiceLedgerDebit(invoice.status, total, expenseSubtotal)
+        );
       });
     }
     return NextResponse.json(updated);

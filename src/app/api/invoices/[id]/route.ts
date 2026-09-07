@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { calculateInvoiceStatus } from "@/lib/types";
 import { invoiceSchema, serverError, validationError } from "@/lib/api";
+import { calculateInvoiceLedgerDebit, reconcileInvoiceLedger } from "@/lib/invoice-accounting";
 
 export async function GET(
   _req: NextRequest,
@@ -43,7 +44,7 @@ export async function PUT(
     const body = parsed.data;
     const existing = await db.invoice.findUnique({
       where: { id },
-      include: { items: true },
+      include: { items: true, expenses: true },
     });
     if (!existing)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -53,56 +54,76 @@ export async function PUT(
       (s: number, it: any) => s + Number(it.total || it.unitPrice * it.quantity || 0),
       0
     );
-    const attachedExpenses = body.expenseIds.length
+    const expenseIds = [...new Set(body.expenseIds ?? (
+      existing.customerId === body.customerId
+        ? existing.expenses.map((expense) => expense.id)
+        : []
+    ))];
+    const attachedExpenses = expenseIds.length
       ? await db.expense.findMany({
           where: {
-            id: { in: body.expenseIds },
+            id: { in: expenseIds },
             OR: [{ invoiceId: null }, { invoiceId: id }],
             vehicle: { customerId: body.customerId },
           },
           select: { customerCharge: true },
         })
       : [];
+    if (attachedExpenses.length !== expenseIds.length) {
+      return NextResponse.json(
+        { error: "One or more selected expenses are unavailable or belong to another invoice" },
+        { status: 409 }
+      );
+    }
     const expenseSubtotal = attachedExpenses.reduce((sum, expense) => sum + expense.customerCharge, 0);
     const subtotal = itemSubtotal + expenseSubtotal;
     const tax = Number(body.tax || 0);
     const total = subtotal + tax;
 
-    // Delete old items, recreate new
-    await db.invoiceItem.deleteMany({ where: { invoiceId: id } });
+    const updated = await db.$transaction(async (tx) => {
+      await tx.invoiceItem.deleteMany({ where: { invoiceId: id } });
 
-    const updated = await db.invoice.update({
-      where: { id },
-      data: {
-        customerId: body.customerId,
-        vehicleId: body.vehicleId || null,
-        status: body.status,
-        dueDate: body.dueDate,
-        subtotal,
-        tax,
-        total,
-        items: {
-          create: items.map((it: any) => ({
-            description: it.description,
-            quantity: it.quantity,
-            unitPrice: it.unitPrice,
-            total: it.total ?? it.unitPrice * it.quantity,
-          })),
+      const changed = await tx.invoice.update({
+        where: { id },
+        data: {
+          customerId: body.customerId,
+          vehicleId: body.vehicleId || null,
+          status: body.status,
+          ...(body.issueDate ? { issueDate: body.issueDate } : {}),
+          dueDate: body.dueDate,
+          subtotal,
+          tax,
+          total,
+          items: {
+            create: items.map((it: any) => ({
+              description: it.description,
+              quantity: it.quantity,
+              unitPrice: it.unitPrice,
+              total: it.total ?? it.unitPrice * it.quantity,
+            })),
+          },
         },
-      },
-      include: { items: true, customer: true, vehicle: true },
-    });
-    await db.expense.updateMany({ where: { invoiceId: id }, data: { invoiceId: null } });
-    if (body.expenseIds.length > 0) {
-      await db.expense.updateMany({
-        where: {
-          id: { in: body.expenseIds },
-          OR: [{ invoiceId: null }, { invoiceId: id }],
-          vehicle: { customerId: updated.customerId },
-        },
-        data: { invoiceId: id },
+        include: { items: true, customer: true, vehicle: true },
       });
-    }
+      await tx.expense.updateMany({ where: { invoiceId: id }, data: { invoiceId: null } });
+      if (expenseIds.length > 0) {
+        const attached = await tx.expense.updateMany({
+          where: { id: { in: expenseIds }, invoiceId: null, vehicle: { customerId: changed.customerId } },
+          data: { invoiceId: id },
+        });
+        if (attached.count !== expenseIds.length) {
+          throw new Error("Selected expenses changed before invoice update completed");
+        }
+      }
+      await reconcileInvoiceLedger(
+        tx,
+        id,
+        existing.customerId,
+        changed.customerId,
+        calculateInvoiceLedgerDebit(changed.status, changed.total, expenseSubtotal)
+      );
+      return changed;
+    });
     return NextResponse.json(updated);
   } catch (e) {
     return serverError(e);

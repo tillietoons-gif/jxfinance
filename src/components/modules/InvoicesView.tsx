@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Sheet,
   SheetContent,
@@ -77,6 +78,7 @@ interface Invoice {
   vehicle?: { id: string; vin: string; make: string; model: string } | null;
   vehicleId?: string | null;
   items?: any[];
+  expenses?: any[];
 }
 
 export function InvoicesView() {
@@ -470,7 +472,18 @@ export function InvoicesView() {
                     </div>
                   </div>
                 ))}
-                {(!detailData.items || detailData.items.length === 0) && (
+                {(detailData.expenses || []).map((expense: any) => (
+                  <div
+                    key={`expense-${expense.id}`}
+                    className="grid grid-cols-12 gap-2 border-t border-[#F3F4F6] bg-[#FFFBEB] p-2.5 text-xs"
+                  >
+                    <div className="col-span-6">{expense.title} <span className="text-[#92730E]">(expense)</span></div>
+                    <div className="col-span-2 text-center">1</div>
+                    <div className="col-span-2 text-right font-mono">{formatCurrency(expense.customerCharge)}</div>
+                    <div className="col-span-2 text-right font-mono font-semibold">{formatCurrency(expense.customerCharge)}</div>
+                  </div>
+                ))}
+                {(!detailData.items || detailData.items.length === 0) && (!detailData.expenses || detailData.expenses.length === 0) && (
                   <div className="p-4 text-center text-sm text-[#9CA3AF]">
                     No line items
                   </div>
@@ -506,6 +519,7 @@ export function InvoicesView() {
                     customer: detailData.customer,
                     vehicle: detailData.vehicle,
                     items: detailData.items,
+                    expenses: detailData.expenses,
                     logoUrl: "/api/settings/logo",
                   })
                 }
@@ -583,7 +597,9 @@ function InvoiceFormDialog({
       .slice(0, 10),
     tax: 0,
     items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
+    expenseIds: [] as string[],
   });
+  const [customerExpenses, setCustomerExpenses] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [invoiceDefaults, setInvoiceDefaults] = useState({ prefix: "INV", taxRate: 0 });
 
@@ -603,6 +619,7 @@ function InvoiceFormDialog({
         issueDate: new Date(editing.issueDate).toISOString().slice(0, 10),
         dueDate: new Date(editing.dueDate).toISOString().slice(0, 10),
         tax: editing.tax,
+        expenseIds: (editing.expenses || []).map((expense: any) => expense.id),
         items: (editing.items || []).map((it: any) => ({
           description: it.description,
           quantity: it.quantity,
@@ -622,18 +639,45 @@ function InvoiceFormDialog({
           .slice(0, 10),
         tax: invoiceDefaults.taxRate,
         items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
+        expenseIds: [],
       });
     }
   }, [editing, customers, open, invoiceDefaults.prefix, invoiceDefaults.taxRate]);
 
+  useEffect(() => {
+    if (!open || !form.customerId) {
+      setCustomerExpenses([]);
+      return;
+    }
+    fetch(`/api/expenses?customerId=${encodeURIComponent(form.customerId)}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((expenses) => {
+        setCustomerExpenses(expenses);
+        if (!editing) {
+          setForm((current) => ({
+            ...current,
+            expenseIds: expenses
+              .filter((expense: any) => !expense.invoiceId && Number(expense.customerCharge) > 0)
+              .map((expense: any) => expense.id),
+          }));
+        }
+      })
+      .catch(() => setCustomerExpenses([]));
+  }, [open, form.customerId, editing]);
+
   const customerVehicles = vehicles.filter(
     (v) => v.customerId === form.customerId
+  );
+  const availableExpenses = customerExpenses.filter(
+    (expense) => !expense.invoiceId || expense.invoiceId === editing?.id
   );
 
   const subtotal = form.items.reduce(
     (s, it) => s + (Number(it.unitPrice) || 0) * (Number(it.quantity) || 0),
     0
-  );
+  ) + availableExpenses
+    .filter((expense) => form.expenseIds.includes(expense.id))
+    .reduce((sum, expense) => sum + (Number(expense.customerCharge) || 0), 0);
   const total = subtotal + Number(form.tax || 0);
 
   const updateItem = (i: number, field: string, value: any) => {
@@ -672,10 +716,15 @@ function InvoiceFormDialog({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) {
+        const error = await res.json().catch(() => null);
+        throw new Error(error?.error || "Failed to save invoice");
+      }
       toast.success(editing ? "Invoice updated" : "Invoice created");
       onOpenChange(false);
       onSuccess();
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to save invoice");
     } finally {
       setSaving(false);
     }
@@ -725,7 +774,7 @@ function InvoiceFormDialog({
             <Select
               value={form.customerId}
               onValueChange={(v) =>
-                setForm({ ...form, customerId: v, vehicleId: "" })
+                setForm({ ...form, customerId: v, vehicleId: "", expenseIds: [] })
               }
             >
               <SelectTrigger className="mt-1">
@@ -739,6 +788,39 @@ function InvoiceFormDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="rounded-lg border border-[#E5E7EB] p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold">Expenses</Label>
+              <span className="text-[10px] text-[#6B7280]">Selected charges appear on the invoice</span>
+            </div>
+            {availableExpenses.length === 0 ? (
+              <p className="text-xs text-[#9CA3AF]">No customer-charge expenses for this customer.</p>
+            ) : (
+              <div className="space-y-2">
+                {availableExpenses.map((expense) => {
+                  const selected = form.expenseIds.includes(expense.id);
+                  return (
+                    <label key={expense.id} className="flex items-center gap-2 rounded-md border border-[#F3F4F6] p-2 text-sm cursor-pointer">
+                      <Checkbox
+                        checked={selected}
+                        onCheckedChange={(checked) =>
+                          setForm({
+                            ...form,
+                            expenseIds: checked
+                              ? [...form.expenseIds, expense.id]
+                              : form.expenseIds.filter((id) => id !== expense.id),
+                          })
+                        }
+                      />
+                      <span className="flex-1">{expense.title}</span>
+                      <span className="font-mono text-xs">{formatCurrency(expense.customerCharge)}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
           </div>
           <div>
             <Label className="text-xs">Vehicle (optional)</Label>

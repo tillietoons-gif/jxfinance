@@ -374,8 +374,15 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
   doc.line(marginX, tableY, pageWidth - marginX, tableY);
 
   // Build rows
-  const tableItems = (items && items.length > 0)
-    ? items
+  const expenseItems = (data.expenses || []).map((expense: any) => ({
+    description: `${expense.title} (Expense)`,
+    quantity: 1,
+    unitPrice: expense.customerCharge,
+    total: expense.customerCharge,
+  }));
+  const allItems = [...(items || []), ...expenseItems];
+  const tableItems = (allItems.length > 0)
+    ? allItems
     : [
         {
           description: "SHIPPING FEE",
