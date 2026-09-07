@@ -178,7 +178,7 @@ export function PaymentsView() {
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
         <Input
           placeholder="Search by customer, vehicle VIN, reference, or method…"
           value={search}
@@ -187,7 +187,7 @@ export function PaymentsView() {
         />
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+      <div className="rounded-xl border border-[#E5E7EB] bg-white overflow-hidden">
         {filtered.length === 0 ? (
           <EmptyState
             icon={CreditCard}
@@ -208,7 +208,7 @@ export function PaymentsView() {
           <div className="overflow-x-auto thin-scroll">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                <TableRow className="bg-[#F9FAFB] hover:bg-[#F9FAFB]">
                   <TableHead className="w-[60px]"></TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Customer</TableHead>
@@ -221,23 +221,23 @@ export function PaymentsView() {
               </TableHeader>
               <TableBody>
                 {filtered.map((p) => (
-                  <TableRow key={p.id} className="hover:bg-slate-50">
+                  <TableRow key={p.id} className="hover:bg-[#F9FAFB]">
                     <TableCell>
-                      <div className="h-8 w-8 rounded-md bg-emerald-100 flex items-center justify-center">
-                        <CreditCard className="h-3.5 w-3.5 text-emerald-700" />
+                      <div className="h-8 w-8 rounded-md bg-[#D4AF37]/15 flex items-center justify-center">
+                        <CreditCard className="h-3.5 w-3.5 text-[#92730E]" />
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-slate-600">
+                    <TableCell className="text-sm text-[#4B5563]">
                       {formatDateTime(p.createdAt)}
                     </TableCell>
                     <TableCell className="text-sm font-medium">
                       {p.customer?.name || "—"}
                     </TableCell>
-                    <TableCell className="text-xs text-slate-500 font-mono">
+                    <TableCell className="text-xs text-[#6B7280] font-mono">
                       {p.vehicle?.vin ? (
                         <>
                           {p.vehicle.vin}
-                          <div className="text-[10px] text-slate-400">
+                          <div className="text-[10px] text-[#9CA3AF]">
                             {p.vehicle.make} {p.vehicle.model}
                           </div>
                         </>
@@ -246,21 +246,21 @@ export function PaymentsView() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-xs font-medium">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md border border-[#E5E7EB] bg-[#F9FAFB] text-xs font-medium">
                         {p.method}
                       </span>
                     </TableCell>
-                    <TableCell className="text-xs text-slate-500 font-mono">
+                    <TableCell className="text-xs text-[#6B7280] font-mono">
                       {p.referenceNo || "—"}
                     </TableCell>
-                    <TableCell className="text-right font-mono font-semibold text-emerald-700">
+                    <TableCell className="text-right font-mono font-semibold text-[#92730E]">
                       {formatCurrency(p.amount)}
                     </TableCell>
                     <TableCell>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 w-7 p-0 text-rose-500"
+                        className="h-7 w-7 p-0 text-[#DC2626]"
                         onClick={async () => {
                           if (!confirm("Delete this payment?")) return;
                           await fetch(`/api/payments/${p.id}`, {

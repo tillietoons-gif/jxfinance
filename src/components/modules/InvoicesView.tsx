@@ -218,7 +218,7 @@ export function InvoicesView() {
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
           <Input
             placeholder="Search invoice number or customer…"
             value={search}
@@ -241,7 +241,7 @@ export function InvoicesView() {
         </Select>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+      <div className="rounded-xl border border-[#E5E7EB] bg-white overflow-hidden">
         {filtered.length === 0 ? (
           <EmptyState
             icon={FileText}
@@ -265,7 +265,7 @@ export function InvoicesView() {
           <div className="overflow-x-auto thin-scroll">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                <TableRow className="bg-[#F9FAFB] hover:bg-[#F9FAFB]">
                   <TableHead className="w-[60px]"></TableHead>
                   <TableHead>Invoice #</TableHead>
                   <TableHead>Customer</TableHead>
@@ -280,10 +280,10 @@ export function InvoicesView() {
               </TableHeader>
               <TableBody>
                 {filtered.map((i) => (
-                  <TableRow key={i.id} className="hover:bg-slate-50">
+                  <TableRow key={i.id} className="hover:bg-[#F9FAFB]">
                     <TableCell>
-                      <div className="h-8 w-8 rounded-md bg-slate-100 flex items-center justify-center">
-                        <FileText className="h-3.5 w-3.5 text-slate-500" />
+                      <div className="h-8 w-8 rounded-md bg-[#F3F4F6] flex items-center justify-center">
+                        <FileText className="h-3.5 w-3.5 text-[#6B7280]" />
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-xs font-medium">
@@ -292,10 +292,10 @@ export function InvoicesView() {
                     <TableCell className="text-sm font-medium">
                       {i.customer?.name || "—"}
                     </TableCell>
-                    <TableCell className="text-xs text-slate-500">
+                    <TableCell className="text-xs text-[#6B7280]">
                       {formatDate(i.issueDate)}
                     </TableCell>
-                    <TableCell className="text-xs text-slate-500">
+                    <TableCell className="text-xs text-[#6B7280]">
                       {formatDate(i.dueDate)}
                     </TableCell>
                     <TableCell>
@@ -304,7 +304,7 @@ export function InvoicesView() {
                     <TableCell className="text-right font-mono text-sm">
                       {formatCurrency(i.subtotal)}
                     </TableCell>
-                    <TableCell className="text-right font-mono text-sm text-slate-500">
+                    <TableCell className="text-right font-mono text-sm text-[#6B7280]">
                       {formatCurrency(i.tax)}
                     </TableCell>
                     <TableCell className="text-right font-mono text-sm font-semibold">
@@ -334,7 +334,7 @@ export function InvoicesView() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 w-7 p-0 text-rose-500"
+                          className="h-7 w-7 p-0 text-[#DC2626]"
                           onClick={async () => {
                             if (!confirm(`Delete ${i.invoiceNumber}?`)) return;
                             await fetch(`/api/invoices/${i.id}`, {
@@ -379,7 +379,7 @@ export function InvoicesView() {
           side="right"
           className="w-full sm:max-w-2xl p-0 overflow-y-auto thin-scroll"
         >
-          <SheetHeader className="px-5 py-4 border-b border-slate-200 bg-white sticky top-0 z-10">
+          <SheetHeader className="px-5 py-4 border-b border-[#E5E7EB] bg-white sticky top-0 z-10">
             <SheetTitle className="text-base font-mono">
               {detailInvoice?.invoiceNumber}
             </SheetTitle>
@@ -388,31 +388,31 @@ export function InvoicesView() {
                 status={detailInvoice?.status || "DRAFT"}
                 type="invoice"
               />
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-[#6B7280]">
                 Due {formatDate(detailInvoice?.dueDate)}
               </span>
             </div>
           </SheetHeader>
           {!detailData ? (
-            <div className="p-8 text-center text-sm text-slate-400">Loading…</div>
+            <div className="p-8 text-center text-sm text-[#9CA3AF]">Loading…</div>
           ) : (
             <div className="p-5 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                  <p className="text-[10px] uppercase tracking-wider text-[#6B7280] font-semibold">
                     Bill To
                   </p>
                   <p className="text-sm font-medium">
                     {detailData.customer?.name}
                   </p>
                   {detailData.customer?.companyName && (
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-[#6B7280]">
                       {detailData.customer.companyName}
                     </p>
                   )}
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                  <p className="text-[10px] uppercase tracking-wider text-[#6B7280] font-semibold">
                     Vehicle
                   </p>
                   <p className="text-sm font-medium">
@@ -421,15 +421,15 @@ export function InvoicesView() {
                       : "—"}
                   </p>
                   {detailData.vehicle && (
-                    <p className="text-xs text-slate-500 font-mono">
+                    <p className="text-xs text-[#6B7280] font-mono">
                       {detailData.vehicle.vin}
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="rounded-md border border-slate-200 divide-y divide-slate-100">
-                <div className="grid grid-cols-12 gap-2 p-2.5 bg-slate-50 text-[10px] uppercase tracking-wider font-semibold text-slate-500">
+              <div className="rounded-md border border-[#E5E7EB] divide-y divide-[#F3F4F6]">
+                <div className="grid grid-cols-12 gap-2 p-2.5 bg-[#F9FAFB] text-[10px] uppercase tracking-wider font-semibold text-[#6B7280]">
                   <div className="col-span-6">Description</div>
                   <div className="col-span-2 text-center">Qty</div>
                   <div className="col-span-2 text-right">Unit</div>
@@ -451,26 +451,26 @@ export function InvoicesView() {
                   </div>
                 ))}
                 {(!detailData.items || detailData.items.length === 0) && (
-                  <div className="p-4 text-center text-sm text-slate-400">
+                  <div className="p-4 text-center text-sm text-[#9CA3AF]">
                     No line items
                   </div>
                 )}
               </div>
 
               <div className="ml-auto w-full max-w-xs space-y-1.5 text-sm">
-                <div className="flex justify-between text-slate-600">
+                <div className="flex justify-between text-[#4B5563]">
                   <span>Subtotal</span>
                   <span className="font-mono">
                     {formatCurrency(detailData.subtotal)}
                   </span>
                 </div>
-                <div className="flex justify-between text-slate-600">
+                <div className="flex justify-between text-[#4B5563]">
                   <span>Tax</span>
                   <span className="font-mono">
                     {formatCurrency(detailData.tax)}
                   </span>
                 </div>
-                <div className="flex justify-between border-t border-slate-200 pt-1.5 font-bold text-base">
+                <div className="flex justify-between border-t border-[#E5E7EB] pt-1.5 font-bold text-base">
                   <span>Total</span>
                   <span className="font-mono">
                     {formatCurrency(detailData.total)}
@@ -513,17 +513,17 @@ function KpiCardSimple({
 }) {
   const tones: Record<string, string> = {
     default: "bg-white",
-    success: "bg-emerald-50 border-emerald-200",
-    warning: "bg-amber-50 border-amber-200",
-    danger: "bg-rose-50 border-rose-200",
+    success: "bg-[#D4AF37]/10 border-[#D4AF37]/30",
+    warning: "bg-[#D4AF37]/10 border-[#D4AF37]/30",
+    danger: "bg-[#DC2626]/10 border-[#DC2626]/30",
   };
   return (
     <div
-      className={`rounded-xl border border-slate-200 ${tones[tone]} p-4`}
+      className={`rounded-xl border border-[#E5E7EB] ${tones[tone]} p-4`}
     >
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">
+          <p className="text-[10px] uppercase tracking-wider font-semibold text-[#6B7280]">
             {label}
           </p>
           <p className="text-xl font-bold">{value}</p>
@@ -758,7 +758,7 @@ function InvoiceFormDialog({
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-200 p-3 space-y-2">
+          <div className="rounded-lg border border-[#E5E7EB] p-3 space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-semibold">Line Items</Label>
               <Button
@@ -809,7 +809,7 @@ function InvoiceFormDialog({
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="col-span-1 h-8 w-8 p-0 text-rose-500"
+                    className="col-span-1 h-8 w-8 p-0 text-[#DC2626]"
                     onClick={() => removeItem(i)}
                   >
                     <X className="h-3.5 w-3.5" />
@@ -820,11 +820,11 @@ function InvoiceFormDialog({
           </div>
 
           <div className="ml-auto w-full max-w-xs space-y-1.5 text-sm">
-            <div className="flex justify-between text-slate-600">
+            <div className="flex justify-between text-[#4B5563]">
               <span>Subtotal</span>
               <span className="font-mono">{formatCurrency(subtotal)}</span>
             </div>
-            <div className="flex justify-between text-slate-600 items-center">
+            <div className="flex justify-between text-[#4B5563] items-center">
               <span>Tax</span>
               <Input
                 type="number"
@@ -835,7 +835,7 @@ function InvoiceFormDialog({
                 className="w-28 h-7 text-right text-sm font-mono"
               />
             </div>
-            <div className="flex justify-between border-t border-slate-200 pt-1.5 font-bold text-base">
+            <div className="flex justify-between border-t border-[#E5E7EB] pt-1.5 font-bold text-base">
               <span>Total</span>
               <span className="font-mono">{formatCurrency(total)}</span>
             </div>

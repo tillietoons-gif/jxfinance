@@ -137,7 +137,7 @@ export function CustomersView() {
       />
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
         <Input
           placeholder="Search customers…"
           value={search}
@@ -147,7 +147,7 @@ export function CustomersView() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white">
+        <div className="rounded-xl border border-[#E5E7EB] bg-white">
           <EmptyState
             icon={Users}
             title="No customers yet"
@@ -172,17 +172,17 @@ export function CustomersView() {
           {filtered.map((c) => (
             <div
               key={c.id}
-              className="rounded-xl border border-slate-200 bg-white p-4 hover:shadow-sm transition-shadow"
+              className="rounded-xl border border-[#E5E7EB] bg-white p-4 hover:shadow-sm transition-shadow"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center text-sm font-semibold shrink-0">
+                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#374151] to-black text-white flex items-center justify-center text-sm font-semibold shrink-0">
                     {c.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
                     <p className="font-semibold text-sm truncate">{c.name}</p>
                     {c.companyName && (
-                      <p className="text-xs text-slate-500 truncate">
+                      <p className="text-xs text-[#6B7280] truncate">
                         {c.companyName}
                       </p>
                     )}
@@ -203,7 +203,7 @@ export function CustomersView() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-7 w-7 p-0 text-rose-500"
+                    className="h-7 w-7 p-0 text-[#DC2626]"
                     onClick={async () => {
                       if (!confirm(`Delete ${c.name}?`)) return;
                       await fetch(`/api/customers/${c.id}`, {
@@ -217,53 +217,53 @@ export function CustomersView() {
                   </Button>
                 </div>
               </div>
-              <div className="space-y-1.5 text-xs text-slate-600">
+              <div className="space-y-1.5 text-xs text-[#4B5563]">
                 {c.email && (
                   <div className="flex items-center gap-1.5">
-                    <Mail className="h-3 w-3 text-slate-400" />
+                    <Mail className="h-3 w-3 text-[#9CA3AF]" />
                     <span className="truncate">{c.email}</span>
                   </div>
                 )}
                 {c.phone && (
                   <div className="flex items-center gap-1.5">
-                    <Phone className="h-3 w-3 text-slate-400" />
+                    <Phone className="h-3 w-3 text-[#9CA3AF]" />
                     <span>{c.phone}</span>
                   </div>
                 )}
                 {c.companyName && (
                   <div className="flex items-center gap-1.5">
-                    <Building2 className="h-3 w-3 text-slate-400" />
+                    <Building2 className="h-3 w-3 text-[#9CA3AF]" />
                     <span className="truncate">{c.companyName}</span>
                   </div>
                 )}
                 {c.address && (
                   <div className="flex items-center gap-1.5">
-                    <MapPin className="h-3 w-3 text-slate-400" />
+                    <MapPin className="h-3 w-3 text-[#9CA3AF]" />
                     <span className="truncate">{c.address}</span>
                   </div>
                 )}
               </div>
               <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-100">
                 <div className="text-center">
-                  <Car className="h-3.5 w-3.5 mx-auto text-slate-400 mb-0.5" />
+                  <Car className="h-3.5 w-3.5 mx-auto text-[#9CA3AF] mb-0.5" />
                   <p className="text-xs font-semibold">
                     {c._count?.vehicles || 0}
                   </p>
-                  <p className="text-[10px] text-slate-400 uppercase">Vehicles</p>
+                  <p className="text-[10px] text-[#9CA3AF] uppercase">Vehicles</p>
                 </div>
                 <div className="text-center">
-                  <FileText className="h-3.5 w-3.5 mx-auto text-slate-400 mb-0.5" />
+                  <FileText className="h-3.5 w-3.5 mx-auto text-[#9CA3AF] mb-0.5" />
                   <p className="text-xs font-semibold">
                     {c._count?.invoices || 0}
                   </p>
-                  <p className="text-[10px] text-slate-400 uppercase">Invoices</p>
+                  <p className="text-[10px] text-[#9CA3AF] uppercase">Invoices</p>
                 </div>
                 <div className="text-center">
-                  <CreditCard className="h-3.5 w-3.5 mx-auto text-slate-400 mb-0.5" />
+                  <CreditCard className="h-3.5 w-3.5 mx-auto text-[#9CA3AF] mb-0.5" />
                   <p className="text-xs font-semibold">
                     {c._count?.payments || 0}
                   </p>
-                  <p className="text-[10px] text-slate-400 uppercase">Payments</p>
+                  <p className="text-[10px] text-[#9CA3AF] uppercase">Payments</p>
                 </div>
               </div>
             </div>

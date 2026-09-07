@@ -250,7 +250,7 @@ export function VehiclesView() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
           <Input
             placeholder="Search VIN, make, model, customer…"
             value={search}
@@ -274,7 +274,7 @@ export function VehiclesView() {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+      <div className="rounded-xl border border-[#E5E7EB] bg-white overflow-hidden">
         {filtered.length === 0 ? (
           <EmptyState
             icon={Car}
@@ -298,7 +298,7 @@ export function VehiclesView() {
           <div className="overflow-x-auto thin-scroll">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                <TableRow className="bg-[#F9FAFB] hover:bg-[#F9FAFB]">
                   <TableHead className="w-[60px]"></TableHead>
                   <TableHead>VIN / Vehicle</TableHead>
                   <TableHead>Customer</TableHead>
@@ -314,27 +314,27 @@ export function VehiclesView() {
                 {filtered.map((v) => (
                   <TableRow
                     key={v.id}
-                    className="cursor-pointer hover:bg-slate-50"
+                    className="cursor-pointer hover:bg-[#F9FAFB]"
                     onClick={() => openDetail(v)}
                   >
                     <TableCell>
-                      <div className="h-8 w-8 rounded-md bg-slate-100 flex items-center justify-center">
-                        <Car className="h-3.5 w-3.5 text-slate-500" />
+                      <div className="h-8 w-8 rounded-md bg-[#F3F4F6] flex items-center justify-center">
+                        <Car className="h-3.5 w-3.5 text-[#6B7280]" />
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="font-medium text-sm">
                         {v.make} {v.model}{" "}
-                        <span className="text-slate-400">({v.year})</span>
+                        <span className="text-[#9CA3AF]">({v.year})</span>
                       </div>
-                      <div className="text-xs text-slate-500 font-mono">
+                      <div className="text-xs text-[#6B7280] font-mono">
                         {v.vin}
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-slate-600">
+                    <TableCell className="text-sm text-[#4B5563]">
                       {v.customer?.name || "—"}
                     </TableCell>
-                    <TableCell className="text-sm text-slate-600">
+                    <TableCell className="text-sm text-[#4B5563]">
                       {v.destination || "—"}
                     </TableCell>
                     <TableCell>
@@ -343,14 +343,14 @@ export function VehiclesView() {
                     <TableCell className="text-right font-mono text-sm">
                       {formatCurrency(v.totalCharge)}
                     </TableCell>
-                    <TableCell className="text-right font-mono text-sm text-rose-600">
+                    <TableCell className="text-right font-mono text-sm text-[#DC2626]">
                       {formatCurrency(v.totalCost)}
                     </TableCell>
-                    <TableCell className="text-right font-mono text-sm font-semibold text-emerald-700">
+                    <TableCell className="text-right font-mono text-sm font-semibold text-[#92730E]">
                       {formatCurrency(v.profit)}
                     </TableCell>
                     <TableCell>
-                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                      <ChevronRight className="h-4 w-4 text-[#9CA3AF]" />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -383,57 +383,57 @@ export function VehiclesView() {
           side="right"
           className="w-full sm:max-w-3xl p-0 overflow-y-auto thin-scroll"
         >
-          <SheetHeader className="px-5 py-4 border-b border-slate-200 bg-white sticky top-0 z-10">
+          <SheetHeader className="px-5 py-4 border-b border-[#E5E7EB] bg-white sticky top-0 z-10">
             <SheetTitle className="text-base">
               {detailVehicle
                 ? `${detailVehicle.make} ${detailVehicle.model} (${detailVehicle.year})`
                 : ""}
             </SheetTitle>
-            <p className="text-xs text-slate-500 font-mono">
+            <p className="text-xs text-[#6B7280] font-mono">
               {detailVehicle?.vin}
             </p>
           </SheetHeader>
 
           {detailLoading || !detailData ? (
-            <div className="p-8 text-center text-sm text-slate-400">
+            <div className="p-8 text-center text-sm text-[#9CA3AF]">
               Loading…
             </div>
           ) : (
             <div className="px-5 py-4 space-y-4">
               {/* Quick stats */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border border-slate-200 p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                <div className="rounded-lg border border-[#E5E7EB] p-3">
+                  <p className="text-[10px] uppercase tracking-wider text-[#6B7280] font-semibold">
                     Customer Charge
                   </p>
-                  <p className="text-lg font-bold text-slate-900">
+                  <p className="text-lg font-bold text-black">
                     {formatCurrency(detailData.totalCharge)}
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-200 p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                <div className="rounded-lg border border-[#E5E7EB] p-3">
+                  <p className="text-[10px] uppercase tracking-wider text-[#6B7280] font-semibold">
                     Company Cost
                   </p>
-                  <p className="text-lg font-bold text-rose-700">
+                  <p className="text-lg font-bold text-[#991B1B]">
                     {formatCurrency(detailData.totalCost)}
                   </p>
                 </div>
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-emerald-700 font-semibold">
+                <div className="rounded-lg border border-[#D4AF37]/30 bg-[#D4AF37]/10 p-3">
+                  <p className="text-[10px] uppercase tracking-wider text-[#92730E] font-semibold">
                     Net Profit
                   </p>
-                  <p className="text-lg font-bold text-emerald-800">
+                  <p className="text-lg font-bold text-[#92730E]">
                     {formatCurrency(detailData.profit)}
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-200 p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                <div className="rounded-lg border border-[#E5E7EB] p-3">
+                  <p className="text-[10px] uppercase tracking-wider text-[#6B7280] font-semibold">
                     Margin / Payments
                   </p>
-                  <p className="text-lg font-bold text-slate-900">
+                  <p className="text-lg font-bold text-black">
                     {(detailData.margin || 0).toFixed(1)}%
                   </p>
-                  <p className="text-[10px] text-slate-500">
+                  <p className="text-[10px] text-[#6B7280]">
                     {formatCurrency(detailData.paymentsReceived)} received
                   </p>
                 </div>
@@ -466,7 +466,7 @@ export function VehiclesView() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-1.5 text-rose-600 hover:text-rose-700"
+                  className="gap-1.5 text-[#DC2626] hover:text-[#991B1B]"
                   onClick={async () => {
                     if (
                       !confirm(
@@ -779,7 +779,7 @@ function VehiclePaymentsTab({
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-[#6B7280]">
           {vehicle.payments?.length || 0} payment(s) •{" "}
           {formatCurrency(vehicle.paymentsReceived)} received
         </p>
@@ -795,7 +795,7 @@ function VehiclePaymentsTab({
       </div>
 
       {showForm && (
-        <div className="rounded-lg border border-slate-200 p-3 space-y-2 bg-slate-50">
+        <div className="rounded-lg border border-[#E5E7EB] p-3 space-y-2 bg-[#F9FAFB]">
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs">Amount</Label>
@@ -852,32 +852,32 @@ function VehiclePaymentsTab({
         </div>
       )}
 
-      <div className="rounded-md border border-slate-200 divide-y divide-slate-100">
+      <div className="rounded-md border border-[#E5E7EB] divide-y divide-[#F3F4F6]">
         {(vehicle.payments || []).map((p: any) => (
           <div
             key={p.id}
-            className="flex items-center justify-between p-2.5 hover:bg-slate-50"
+            className="flex items-center justify-between p-2.5 hover:bg-[#F9FAFB]"
           >
             <div className="flex items-center gap-2.5">
-              <div className="h-7 w-7 rounded-md bg-emerald-100 flex items-center justify-center">
-                <CreditCard className="h-3.5 w-3.5 text-emerald-700" />
+              <div className="h-7 w-7 rounded-md bg-[#D4AF37]/15 flex items-center justify-center">
+                <CreditCard className="h-3.5 w-3.5 text-[#92730E]" />
               </div>
               <div>
                 <p className="text-sm font-medium">{p.method}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-[#6B7280]">
                   {formatDate(p.createdAt)}
                   {p.referenceNo ? ` • Ref: ${p.referenceNo}` : ""}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-emerald-700">
+              <span className="text-sm font-semibold text-[#92730E]">
                 {formatCurrency(p.amount)}
               </span>
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 w-7 p-0 text-rose-500"
+                className="h-7 w-7 p-0 text-[#DC2626]"
                 onClick={async () => {
                   if (!confirm("Delete payment?")) return;
                   await fetch(`/api/payments/${p.id}`, { method: "DELETE" });
@@ -891,7 +891,7 @@ function VehiclePaymentsTab({
           </div>
         ))}
         {(vehicle.payments || []).length === 0 && (
-          <div className="p-6 text-center text-sm text-slate-400">
+          <div className="p-6 text-center text-sm text-[#9CA3AF]">
             No payments recorded
           </div>
         )}
@@ -904,21 +904,21 @@ function VehiclePaymentsTab({
 function VehicleInvoicesTab({ vehicle }: { vehicle: any }) {
   if (!vehicle.invoices || vehicle.invoices.length === 0) {
     return (
-      <div className="p-6 text-center text-sm text-slate-400">
+      <div className="p-6 text-center text-sm text-[#9CA3AF]">
         No invoices for this vehicle
       </div>
     );
   }
   return (
-    <div className="rounded-md border border-slate-200 divide-y divide-slate-100">
+    <div className="rounded-md border border-[#E5E7EB] divide-y divide-[#F3F4F6]">
       {vehicle.invoices.map((inv: any) => (
         <div
           key={inv.id}
-          className="flex items-center justify-between p-2.5 hover:bg-slate-50"
+          className="flex items-center justify-between p-2.5 hover:bg-[#F9FAFB]"
         >
           <div>
             <p className="text-sm font-medium font-mono">{inv.invoiceNumber}</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#6B7280]">
               Issued {formatDate(inv.issueDate)} • Due {formatDate(inv.dueDate)}
             </p>
           </div>
@@ -940,27 +940,27 @@ function VehicleProfitTab({ vehicle }: { vehicle: any }) {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-3 gap-2">
-        <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3">
-          <p className="text-[10px] uppercase tracking-wider text-emerald-700 font-semibold">
+        <div className="rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/30 p-3">
+          <p className="text-[10px] uppercase tracking-wider text-[#92730E] font-semibold">
             Profit
           </p>
-          <p className="text-base font-bold text-emerald-900">
+          <p className="text-base font-bold text-[#92730E]">
             {formatCurrency(vehicle.profit)}
           </p>
         </div>
-        <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-          <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+        <div className="rounded-lg bg-[#F9FAFB] border border-[#E5E7EB] p-3">
+          <p className="text-[10px] uppercase tracking-wider text-[#6B7280] font-semibold">
             Margin
           </p>
-          <p className="text-base font-bold text-slate-900">
+          <p className="text-base font-bold text-black">
             {(vehicle.margin || 0).toFixed(2)}%
           </p>
         </div>
-        <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
-          <p className="text-[10px] uppercase tracking-wider text-amber-700 font-semibold">
+        <div className="rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/30 p-3">
+          <p className="text-[10px] uppercase tracking-wider text-[#92730E] font-semibold">
             Outstanding
           </p>
-          <p className="text-base font-bold text-amber-900">
+          <p className="text-base font-bold text-[#92730E]">
             {formatCurrency(
               Math.max(vehicle.totalCharge - vehicle.paymentsReceived, 0)
             )}
@@ -968,21 +968,21 @@ function VehicleProfitTab({ vehicle }: { vehicle: any }) {
         </div>
       </div>
 
-      <div className="rounded-md border border-slate-200 divide-y divide-slate-100">
+      <div className="rounded-md border border-[#E5E7EB] divide-y divide-[#F3F4F6]">
         {rows.map((e: any) => (
           <div key={e.id} className="flex items-center justify-between p-2.5">
             <div className="text-sm">{e.title}</div>
             <div className="flex items-center gap-4 text-xs font-mono">
-              <span className="text-emerald-700">+{formatCurrency(e.customerCharge)}</span>
-              <span className="text-rose-600">−{formatCurrency(e.companyCost)}</span>
-              <span className="font-semibold text-slate-900">
+              <span className="text-[#92730E]">+{formatCurrency(e.customerCharge)}</span>
+              <span className="text-[#DC2626]">−{formatCurrency(e.companyCost)}</span>
+              <span className="font-semibold text-black">
                 {formatCurrency(e.profit)}
               </span>
             </div>
           </div>
         ))}
         {rows.length === 0 && (
-          <div className="p-6 text-center text-sm text-slate-400">
+          <div className="p-6 text-center text-sm text-[#9CA3AF]">
             No expenses recorded
           </div>
         )}

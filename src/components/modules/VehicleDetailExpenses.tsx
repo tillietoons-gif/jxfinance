@@ -88,7 +88,7 @@ export function VehicleDetailExpenses({
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-[#6B7280]">
           {vehicle.expenses?.length || 0} expense(s) •{" "}
           {formatCurrency(vehicle.totalCharge)} charged •{" "}
           {formatCurrency(vehicle.totalCost)} cost
@@ -105,7 +105,7 @@ export function VehicleDetailExpenses({
       </div>
 
       {showForm && (
-        <div className="rounded-lg border border-slate-200 p-3 space-y-2 bg-slate-50">
+        <div className="rounded-lg border border-[#E5E7EB] p-3 space-y-2 bg-[#F9FAFB]">
           <div>
             <Label className="text-xs">Title *</Label>
             <Input
@@ -117,7 +117,7 @@ export function VehicleDetailExpenses({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label className="text-xs text-emerald-700">
+              <Label className="text-xs text-[#92730E]">
                 Customer Charge
               </Label>
               <Input
@@ -134,7 +134,7 @@ export function VehicleDetailExpenses({
               />
             </div>
             <div>
-              <Label className="text-xs text-rose-700">Company Cost</Label>
+              <Label className="text-xs text-[#991B1B]">Company Cost</Label>
               <Input
                 type="number"
                 value={form.companyCost || ""}
@@ -149,11 +149,11 @@ export function VehicleDetailExpenses({
               />
             </div>
           </div>
-          <div className="rounded-md bg-emerald-50 border border-emerald-200 px-3 py-1.5 flex items-center justify-between">
-            <span className="text-xs text-emerald-700 font-medium">
+          <div className="rounded-md bg-[#D4AF37]/10 border border-[#D4AF37]/30 px-3 py-1.5 flex items-center justify-between">
+            <span className="text-xs text-[#92730E] font-medium">
               Auto Profit
             </span>
-            <span className="text-sm font-bold text-emerald-900">
+            <span className="text-sm font-bold text-[#92730E]">
               {formatCurrency(computedProfit)}
             </span>
           </div>
@@ -181,27 +181,27 @@ export function VehicleDetailExpenses({
         </div>
       )}
 
-      <div className="rounded-md border border-slate-200 divide-y divide-slate-100">
+      <div className="rounded-md border border-[#E5E7EB] divide-y divide-[#F3F4F6]">
         {(vehicle.expenses || []).map((e: any) => (
           <div
             key={e.id}
-            className="flex items-center justify-between p-2.5 hover:bg-slate-50"
+            className="flex items-center justify-between p-2.5 hover:bg-[#F9FAFB]"
           >
             <div className="flex items-center gap-2.5">
-              <div className="h-7 w-7 rounded-md bg-slate-100 flex items-center justify-center">
-                <ReceiptIcon className="h-3.5 w-3.5 text-slate-500" />
+              <div className="h-7 w-7 rounded-md bg-[#F3F4F6] flex items-center justify-center">
+                <ReceiptIcon className="h-3.5 w-3.5 text-[#6B7280]" />
               </div>
               <div>
                 <p className="text-sm font-medium">{e.title}</p>
-                <p className="text-xs text-slate-500">{formatDate(e.createdAt)}</p>
+                <p className="text-xs text-[#6B7280]">{formatDate(e.createdAt)}</p>
               </div>
             </div>
             <div className="flex items-center gap-4 text-xs font-mono">
-              <span className="text-emerald-700">
+              <span className="text-[#92730E]">
                 +{formatCurrency(e.customerCharge)}
               </span>
-              <span className="text-rose-600">−{formatCurrency(e.companyCost)}</span>
-              <span className="font-semibold text-emerald-900 inline-flex items-center gap-1">
+              <span className="text-[#DC2626]">−{formatCurrency(e.companyCost)}</span>
+              <span className="font-semibold text-[#92730E] inline-flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" />
                 {formatCurrency(e.profit)}
               </span>
@@ -217,7 +217,7 @@ export function VehicleDetailExpenses({
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-7 w-7 p-0 text-rose-500"
+                  className="h-7 w-7 p-0 text-[#DC2626]"
                   onClick={() => remove(e.id)}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -227,7 +227,7 @@ export function VehicleDetailExpenses({
           </div>
         ))}
         {(vehicle.expenses || []).length === 0 && (
-          <div className="p-6 text-center text-sm text-slate-400">
+          <div className="p-6 text-center text-sm text-[#9CA3AF]">
             No expenses recorded — add one to start tracking profit
           </div>
         )}

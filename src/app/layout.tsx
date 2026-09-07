@@ -14,15 +14,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AutoLogix — Vehicle Logistics & Financial Management",
+  title: "JACXI Shipping — Vehicle Logistics & Financial Management",
   description:
-    "Solo-operator platform for vehicle shipments, dual-sided expense tracking, dual-ledger accounting, payments, invoices, and reporting.",
+    "Premium vehicle logistics from North America to Afghanistan. Solo-operator platform for vehicle shipments, dual-sided expense tracking, dual-ledger accounting, payments, invoices, and reporting.",
   keywords: [
+    "JACXI",
     "vehicle logistics",
     "shipping",
     "invoicing",
     "ledger",
     "accounting",
+    "Afghanistan",
   ],
 };
 
@@ -34,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50 text-slate-900`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
         {children}
         <Sonner position="top-right" richColors closeButton />

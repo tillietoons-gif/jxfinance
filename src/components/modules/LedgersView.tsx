@@ -185,10 +185,10 @@ export function LedgersView() {
 
       {/* Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className="rounded-lg border border-violet-200 bg-violet-50 p-4">
+        <div className="rounded-lg border border-[#D4AF37]/30 bg-violet-50 p-4">
           <div className="flex items-center gap-2 mb-1">
-            <User className="h-4 w-4 text-violet-700" />
-            <p className="text-xs uppercase tracking-wider font-semibold text-violet-700">
+            <User className="h-4 w-4 text-[#92730E]" />
+            <p className="text-xs uppercase tracking-wider font-semibold text-[#92730E]">
               Customer Ledgers
             </p>
           </div>
@@ -199,33 +199,33 @@ export function LedgersView() {
             Net customer balance
           </p>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-4">
           <div className="flex items-center gap-2 mb-1">
-            <Building2 className="h-4 w-4 text-slate-700" />
-            <p className="text-xs uppercase tracking-wider font-semibold text-slate-700">
+            <Building2 className="h-4 w-4 text-[#374151]" />
+            <p className="text-xs uppercase tracking-wider font-semibold text-[#374151]">
               Company Ledgers
             </p>
           </div>
-          <p className="text-xl font-bold text-slate-900">
+          <p className="text-xl font-bold text-black">
             {formatCurrency(totalCompany)}
           </p>
-          <p className="text-[10px] text-slate-500 mt-0.5">Net company balance</p>
+          <p className="text-[10px] text-[#6B7280] mt-0.5">Net company balance</p>
         </div>
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+        <div className="rounded-lg border border-[#D4AF37]/30 bg-[#D4AF37]/10 p-4">
           <div className="flex items-center gap-2 mb-1">
-            <Wallet className="h-4 w-4 text-emerald-700" />
-            <p className="text-xs uppercase tracking-wider font-semibold text-emerald-700">
+            <Wallet className="h-4 w-4 text-[#92730E]" />
+            <p className="text-xs uppercase tracking-wider font-semibold text-[#92730E]">
               Receivables (A/R)
             </p>
           </div>
-          <p className="text-xl font-bold text-emerald-900">
+          <p className="text-xl font-bold text-[#92730E]">
             {formatCurrency(
               ledgers
                 .filter((l) => l.balance > 0)
                 .reduce((s, l) => s + l.balance, 0)
             )}
           </p>
-          <p className="text-[10px] text-emerald-600 mt-0.5">
+          <p className="text-[10px] text-[#92730E] mt-0.5">
             Outstanding from customers
           </p>
         </div>
@@ -247,7 +247,7 @@ export function LedgersView() {
         </Select>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+      <div className="rounded-xl border border-[#E5E7EB] bg-white overflow-hidden">
         {filtered.length === 0 ? (
           <EmptyState
             icon={BookOpen}
@@ -258,7 +258,7 @@ export function LedgersView() {
           <div className="overflow-x-auto thin-scroll">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                <TableRow className="bg-[#F9FAFB] hover:bg-[#F9FAFB]">
                   <TableHead className="w-[60px]"></TableHead>
                   <TableHead>Ledger Name</TableHead>
                   <TableHead>Type</TableHead>
@@ -272,54 +272,54 @@ export function LedgersView() {
                 {filtered.map((l) => (
                   <TableRow
                     key={l.id}
-                    className="cursor-pointer hover:bg-slate-50"
+                    className="cursor-pointer hover:bg-[#F9FAFB]"
                     onClick={() => openDetail(l)}
                   >
                     <TableCell>
                       <div
                         className={`h-8 w-8 rounded-md flex items-center justify-center ${
                           l.type === "CUSTOMER"
-                            ? "bg-violet-100"
-                            : "bg-slate-100"
+                            ? "bg-[#D4AF37]/15"
+                            : "bg-[#F3F4F6]"
                         }`}
                       >
                         {l.type === "CUSTOMER" ? (
-                          <User className="h-3.5 w-3.5 text-violet-700" />
+                          <User className="h-3.5 w-3.5 text-[#92730E]" />
                         ) : (
-                          <Building2 className="h-3.5 w-3.5 text-slate-700" />
+                          <Building2 className="h-3.5 w-3.5 text-[#374151]" />
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="font-medium text-sm">{l.name}</div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-[#6B7280]">
                         Updated {formatDateTime(l.updatedAt)}
                       </div>
                     </TableCell>
                     <TableCell>
                       <TypeBadge type={l.type} />
                     </TableCell>
-                    <TableCell className="text-sm text-slate-600">
+                    <TableCell className="text-sm text-[#4B5563]">
                       {l.customer?.name || "—"}
                     </TableCell>
                     <TableCell className="text-right">
                       <span
                         className={`text-sm font-mono font-semibold ${
                           l.balance > 0
-                            ? "text-rose-600"
+                            ? "text-[#DC2626]"
                             : l.balance < 0
-                            ? "text-emerald-600"
-                            : "text-slate-700"
+                            ? "text-[#92730E]"
+                            : "text-[#374151]"
                         }`}
                       >
                         {formatCurrency(l.balance)}
                       </span>
                     </TableCell>
-                    <TableCell className="text-center text-sm text-slate-600">
+                    <TableCell className="text-center text-sm text-[#4B5563]">
                       {l._count?.transactions || 0}
                     </TableCell>
                     <TableCell>
-                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                      <ChevronRight className="h-4 w-4 text-[#9CA3AF]" />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -351,11 +351,11 @@ export function LedgersView() {
           side="right"
           className="w-full sm:max-w-2xl p-0 overflow-y-auto thin-scroll"
         >
-          <SheetHeader className="px-5 py-4 border-b border-slate-200 bg-white sticky top-0 z-10">
+          <SheetHeader className="px-5 py-4 border-b border-[#E5E7EB] bg-white sticky top-0 z-10">
             <SheetTitle className="text-base">{detailLedger?.name}</SheetTitle>
             <div className="flex items-center gap-3 text-xs">
               <TypeBadge type={detailLedger?.type || "CUSTOMER"} />
-              <span className="text-slate-500">
+              <span className="text-[#6B7280]">
                 Balance:{" "}
                 <span className="font-semibold">
                   {formatCurrency(detailData?.balance || 0)}
@@ -370,7 +370,7 @@ export function LedgersView() {
               onChanged={refreshDetail}
             />
           ) : (
-            <div className="p-8 text-center text-sm text-slate-400">Loading…</div>
+            <div className="p-8 text-center text-sm text-[#9CA3AF]">Loading…</div>
           )}
         </SheetContent>
       </Sheet>
@@ -449,7 +449,7 @@ function LedgerDetail({
   return (
     <div className="px-5 py-4 space-y-4">
       <div className="flex justify-between items-center">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-[#6B7280]">
           {txs.length} transaction(s) •{" "}
           {formatCurrency(ledger.balance)} current balance
         </p>
@@ -476,7 +476,7 @@ function LedgerDetail({
       </div>
 
       {showForm && (
-        <div className="rounded-lg border border-slate-200 p-3 space-y-2 bg-slate-50">
+        <div className="rounded-lg border border-[#E5E7EB] p-3 space-y-2 bg-[#F9FAFB]">
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs">Amount</Label>
@@ -537,29 +537,29 @@ function LedgerDetail({
         </div>
       )}
 
-      <div className="rounded-md border border-slate-200 divide-y divide-slate-100">
+      <div className="rounded-md border border-[#E5E7EB] divide-y divide-[#F3F4F6]">
         {withRunning.map((t) => (
-          <div key={t.id} className="p-3 hover:bg-slate-50">
+          <div key={t.id} className="p-3 hover:bg-[#F9FAFB]">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-start gap-2.5 min-w-0">
                 <div
                   className={`h-7 w-7 rounded-md flex items-center justify-center shrink-0 ${
                     t.type === "DEBIT"
-                      ? "bg-rose-100"
-                      : "bg-emerald-100"
+                      ? "bg-[#DC2626]/15"
+                      : "bg-[#D4AF37]/15"
                   }`}
                 >
                   {t.type === "DEBIT" ? (
-                    <ArrowUpCircle className="h-3.5 w-3.5 text-rose-700" />
+                    <ArrowUpCircle className="h-3.5 w-3.5 text-[#991B1B]" />
                   ) : (
-                    <ArrowDownCircle className="h-3.5 w-3.5 text-emerald-700" />
+                    <ArrowDownCircle className="h-3.5 w-3.5 text-[#92730E]" />
                   )}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">
                     {t.description}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#6B7280]">
                     {formatDateTime(t.createdAt)}
                   </p>
                 </div>
@@ -567,13 +567,13 @@ function LedgerDetail({
               <div className="text-right">
                 <p
                   className={`text-sm font-mono font-semibold ${
-                    t.type === "DEBIT" ? "text-rose-600" : "text-emerald-700"
+                    t.type === "DEBIT" ? "text-[#DC2626]" : "text-[#92730E]"
                   }`}
                 >
                   {t.type === "DEBIT" ? "+" : "−"}
                   {formatCurrency(t.amount)}
                 </p>
-                <p className="text-[10px] text-slate-400 font-mono">
+                <p className="text-[10px] text-[#9CA3AF] font-mono">
                   Bal: {formatCurrency(t.runningBalance)}
                 </p>
               </div>
@@ -589,7 +589,7 @@ function LedgerDetail({
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-7 w-7 p-0 text-rose-500"
+                  className="h-7 w-7 p-0 text-[#DC2626]"
                   onClick={async () => {
                     if (!confirm("Delete this transaction?")) return;
                     await fetch(
@@ -607,7 +607,7 @@ function LedgerDetail({
           </div>
         ))}
         {txs.length === 0 && (
-          <div className="p-6 text-center text-sm text-slate-400">
+          <div className="p-6 text-center text-sm text-[#9CA3AF]">
             No transactions yet
           </div>
         )}

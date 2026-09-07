@@ -7,11 +7,11 @@ import { formatCurrency, formatDate } from "./types";
 
 // === Shared brand constants for non-invoice PDFs (statements / reports) ===
 const BRAND = {
-  name: "AUTOLOGIX",
-  tagline: "Vehicle Logistics & Financial Management",
-  email: "ops@autologix.io",
+  name: "JACXI",
+  tagline: "Shipping",
+  email: "ops@jacxi.com",
   phone: "+1 (555) 010-2020",
-  address: "1200 Harbor Blvd, Long Beach, CA 90802",
+  address: "Premium Vehicle Logistics • USA → Afghanistan",
 };
 
 // === JACXI Shipping invoice brand (matches reference design exactly) ===

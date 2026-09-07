@@ -52,7 +52,7 @@ export interface ExportOptions {
 
 export async function exportToExcel(opts: ExportOptions) {
   const wb = new ExcelJS.Workbook();
-  wb.creator = "AutoLogix";
+  wb.creator = "JACXI Shipping";
   wb.created = new Date();
   const sheet = wb.addWorksheet(opts.sheetName || "Sheet1", {
     views: [{ state: "frozen", ySplit: 1 }],

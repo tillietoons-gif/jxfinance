@@ -23,7 +23,7 @@ export function ExportButtons({
         <Button
           variant="outline"
           size="sm"
-          className="gap-1.5"
+          className="gap-1.5 border-[#E5E7EB] text-[#374151] hover:border-black hover:bg-black hover:text-white"
           onClick={async () => {
             try {
               await onExcel();
@@ -41,7 +41,7 @@ export function ExportButtons({
         <Button
           variant="outline"
           size="sm"
-          className="gap-1.5"
+          className="gap-1.5 border-[#D4AF37]/40 text-[#92730E] hover:border-[#D4AF37] hover:bg-[#D4AF37] hover:text-black"
           onClick={async () => {
             try {
               await onPdf();

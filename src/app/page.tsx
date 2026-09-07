@@ -9,7 +9,6 @@ import {
   CreditCard,
   FileText,
   BarChart3,
-  Truck,
   Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -53,24 +52,23 @@ function SidebarContent({
   onNavigate: (v: View) => void;
 }) {
   return (
-    <div className="flex flex-col h-full">
-      {/* Logo / brand */}
-      <div className="flex items-center gap-2.5 px-4 h-14 border-b border-slate-200 bg-slate-950">
-        <div className="h-7 w-7 rounded-md bg-white flex items-center justify-center">
-          <Truck className="h-4 w-4 text-slate-950" />
-        </div>
-        <div className="flex flex-col leading-tight">
-          <span className="text-white font-bold text-sm tracking-tight">
-            AUTOLOGIX
-          </span>
-          <span className="text-[10px] text-slate-400 font-medium">
-            Logistics & Finance
-          </span>
-        </div>
+    <div className="flex flex-col h-full bg-white">
+      {/* Brand header — JACXI wordmark + SHIPPING sub-label
+          Matches brand book cover: Extra Bold Black wordmark, widely-tracked grey subtitle */}
+      <div className="px-5 pt-6 pb-5 border-b border-[#E5E7EB]">
+        <h1 className="brand-wordmark text-2xl text-black leading-none">
+          JACXI
+        </h1>
+        <p className="mt-1.5 text-[10px] font-semibold text-[#6B7280] uppercase tracking-brand">
+          Shipping
+        </p>
+        {/* Subtle gold accent rule under the brand */}
+        <div className="mt-3 h-px w-8 bg-[#D4AF37]" />
       </div>
 
-      <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto thin-scroll">
-        <p className="px-2 pb-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto thin-scroll">
+        <p className="px-3 pb-2 text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider-brand">
           Workspace
         </p>
         {NAV.map((item) => {
@@ -81,18 +79,22 @@ function SidebarContent({
               key={item.id}
               onClick={() => onNavigate(item.id)}
               className={cn(
-                "w-full group flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-colors",
+                "relative w-full group flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all",
                 active
-                  ? "bg-slate-900 text-white"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  ? "bg-black text-white"
+                  : "text-[#374151] hover:bg-[#F9FAFB] hover:text-black"
               )}
             >
+              {/* Gold left-edge indicator for active state */}
+              {active && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#D4AF37] rounded-r" />
+              )}
               <Icon
                 className={cn(
                   "h-4 w-4 shrink-0",
                   active
-                    ? "text-white"
-                    : "text-slate-400 group-hover:text-slate-700"
+                    ? "text-[#D4AF37]"
+                    : "text-[#9CA3AF] group-hover:text-black"
                 )}
               />
               <span className="flex-1 text-left">{item.label}</span>
@@ -101,16 +103,16 @@ function SidebarContent({
         })}
       </nav>
 
-      <div className="px-4 py-3 border-t border-slate-200">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center text-xs font-semibold">
-            OP
-          </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-xs font-medium text-slate-900">Operator</span>
-            <span className="text-[10px] text-slate-500">Solo Admin</span>
-          </div>
-        </div>
+      {/* Brand footer — values: Transparency, Precision, Reliability */}
+      <div className="px-5 py-4 border-t border-[#E5E7EB]">
+        <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-brand mb-1.5">
+          Brand Values
+        </p>
+        <p className="text-xs text-[#374151] leading-relaxed">
+          Transparency<span className="text-[#D4AF37] mx-1.5">•</span>
+          Precision<span className="text-[#D4AF37] mx-1.5">•</span>
+          Reliability
+        </p>
       </div>
     </div>
   );
@@ -130,9 +132,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
+    <div className="min-h-screen flex bg-[#F9FAFB]">
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-60 shrink-0 flex-col bg-white border-r border-slate-200 sticky top-0 h-screen">
+      <aside className="hidden lg:flex w-60 shrink-0 flex-col bg-white border-r border-[#E5E7EB] sticky top-0 h-screen">
         <SidebarContent view={view} onNavigate={handleNavigate} />
       </aside>
 
@@ -146,17 +148,17 @@ export default function Home() {
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar (mobile only) */}
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 lg:hidden">
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[#E5E7EB] lg:hidden">
           <div className="flex items-center justify-between px-4 h-14">
             <button
               onClick={() => setMobileOpen(true)}
-              className="p-1.5 rounded-md hover:bg-slate-100"
+              className="p-1.5 rounded-md hover:bg-[#F9FAFB]"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
             </button>
-            <span className="font-semibold text-sm tracking-tight">
-              AUTOLOGIX
+            <span className="brand-wordmark text-sm text-black tracking-tight">
+              JACXI
             </span>
             <div className="w-7" />
           </div>

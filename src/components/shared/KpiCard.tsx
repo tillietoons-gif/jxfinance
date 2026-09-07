@@ -17,12 +17,16 @@ interface Props {
   className?: string;
 }
 
+// JACXI brand variants — gilded minimalism
+// default: pure white card with subtle grey border
+// primary: jet black bg with gold accent (premium KPI)
+// success/warning/danger: snow-white bg with tinted border + tinted label
 const variants: Record<string, string> = {
-  default: "bg-white text-slate-900",
-  primary: "bg-slate-900 text-white",
-  success: "bg-emerald-50 text-emerald-900 border-emerald-200",
-  warning: "bg-amber-50 text-amber-900 border-amber-200",
-  danger: "bg-rose-50 text-rose-900 border-rose-200",
+  default: "bg-white text-black border-[#E5E7EB]",
+  primary: "bg-black text-white border-black",
+  success: "bg-white text-black border-[#D4AF37]/40",
+  warning: "bg-white text-black border-[#F59E0B]/40",
+  danger: "bg-white text-black border-[#DC2626]/40",
 };
 
 export function KpiCard({
@@ -37,26 +41,39 @@ export function KpiCard({
   return (
     <Card
       className={cn(
-        "border overflow-hidden shadow-none",
+        "border overflow-hidden shadow-none transition-all",
         variants[variant],
+        variant === "default" && "hover:border-[#D4AF37]/50",
         className
       )}
     >
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1.5">
-            <p className="text-xs font-medium opacity-75 uppercase tracking-wide">
+            <p
+              className={cn(
+                "text-[10px] font-semibold uppercase tracking-brand",
+                variant === "primary" ? "text-[#D4AF37]" : "text-[#6B7280]"
+              )}
+            >
               {label}
             </p>
             <p className="text-2xl font-bold tracking-tight">{value}</p>
-            {hint && <p className="text-xs opacity-70">{hint}</p>}
+            {hint && (
+              <p
+                className={cn(
+                  "text-xs",
+                  variant === "primary" ? "text-white/60" : "text-[#6B7280]"
+                )}
+              >
+                {hint}
+              </p>
+            )}
             {trend && (
               <p
                 className={cn(
-                  "text-xs font-medium",
-                  trend.positive
-                    ? "text-emerald-600"
-                    : "text-rose-600"
+                  "text-xs font-semibold",
+                  trend.positive ? "text-[#D4AF37]" : "text-[#DC2626]"
                 )}
               >
                 {trend.value}
@@ -68,11 +85,16 @@ export function KpiCard({
               className={cn(
                 "h-8 w-8 rounded-md flex items-center justify-center",
                 variant === "primary"
-                  ? "bg-white/10"
-                  : "bg-black/5"
+                  ? "bg-[#D4AF37]/15"
+                  : "bg-[#F9FAFB]"
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon
+                className={cn(
+                  "h-4 w-4",
+                  variant === "primary" ? "text-[#D4AF37]" : "text-[#6B7280]"
+                )}
+              />
             </div>
           )}
         </div>

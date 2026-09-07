@@ -190,7 +190,7 @@ function PnlReport() {
         <CardContent>
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Start</label>
+              <label className="text-xs text-[#6B7280] mb-1 block">Start</label>
               <Input
                 type="date"
                 value={start}
@@ -199,7 +199,7 @@ function PnlReport() {
               />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">End</label>
+              <label className="text-xs text-[#6B7280] mb-1 block">End</label>
               <Input
                 type="date"
                 value={end}
@@ -316,7 +316,7 @@ function PnlReport() {
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[200px] flex items-center justify-center text-sm text-slate-400">
+                <div className="h-[200px] flex items-center justify-center text-sm text-[#9CA3AF]">
                   No data for selected range
                 </div>
               )}
@@ -333,7 +333,7 @@ function PnlReport() {
               <div className="overflow-x-auto thin-scroll">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-slate-50 hover:bg-slate-50">
+                    <TableRow className="bg-[#F9FAFB] hover:bg-[#F9FAFB]">
                       <TableHead>Date</TableHead>
                       <TableHead>Title</TableHead>
                       <TableHead>Vehicle</TableHead>
@@ -345,17 +345,17 @@ function PnlReport() {
                   <TableBody>
                     {(data.expenses || []).slice(0, 20).map((e: any) => (
                       <TableRow key={e.id}>
-                        <TableCell className="text-xs text-slate-500">
+                        <TableCell className="text-xs text-[#6B7280]">
                           {formatDate(e.createdAt)}
                         </TableCell>
                         <TableCell className="text-sm">{e.title}</TableCell>
-                        <TableCell className="text-xs font-mono text-slate-500">
+                        <TableCell className="text-xs font-mono text-[#6B7280]">
                           {e.vehicle?.vin}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm text-emerald-700">
+                        <TableCell className="text-right font-mono text-sm text-[#92730E]">
                           {formatCurrency(e.customerCharge)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm text-rose-600">
+                        <TableCell className="text-right font-mono text-sm text-[#DC2626]">
                           {formatCurrency(e.companyCost)}
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm font-semibold">
@@ -520,7 +520,7 @@ function VehicleMarginsReport() {
           <div className="overflow-x-auto thin-scroll">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                <TableRow className="bg-[#F9FAFB] hover:bg-[#F9FAFB]">
                   <TableHead>VIN / Vehicle</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Status</TableHead>
@@ -532,30 +532,30 @@ function VehicleMarginsReport() {
               </TableHeader>
               <TableBody>
                 {data.vehicles.map((v: any) => (
-                  <TableRow key={v.id} className="hover:bg-slate-50">
+                  <TableRow key={v.id} className="hover:bg-[#F9FAFB]">
                     <TableCell>
                       <div className="font-medium text-sm">
                         {v.make} {v.model} ({v.year})
                       </div>
-                      <div className="text-xs text-slate-500 font-mono">
+                      <div className="text-xs text-[#6B7280] font-mono">
                         {v.vin}
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-slate-600">
+                    <TableCell className="text-sm text-[#4B5563]">
                       {v.customerName}
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={v.status} />
                     </TableCell>
-                    <TableCell className="text-right font-mono text-sm text-emerald-700">
+                    <TableCell className="text-right font-mono text-sm text-[#92730E]">
                       {formatCurrency(v.customerCharge)}
                     </TableCell>
-                    <TableCell className="text-right font-mono text-sm text-rose-600">
+                    <TableCell className="text-right font-mono text-sm text-[#DC2626]">
                       {formatCurrency(v.companyCost)}
                     </TableCell>
                     <TableCell
                       className={`text-right font-mono text-sm font-semibold ${
-                        v.profit >= 0 ? "text-emerald-700" : "text-rose-600"
+                        v.profit >= 0 ? "text-[#92730E]" : "text-[#DC2626]"
                       }`}
                     >
                       {formatCurrency(v.profit)}
@@ -564,8 +564,8 @@ function VehicleMarginsReport() {
                       <span
                         className={
                           v.margin >= 0
-                            ? "text-emerald-700"
-                            : "text-rose-600"
+                            ? "text-[#92730E]"
+                            : "text-[#DC2626]"
                         }
                       >
                         {(v.margin || 0).toFixed(1)}%
@@ -719,7 +719,7 @@ function AgedReceivablesReport() {
           <div className="overflow-x-auto thin-scroll">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                <TableRow className="bg-[#F9FAFB] hover:bg-[#F9FAFB]">
                   <TableHead>Ledger</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Type</TableHead>
@@ -730,19 +730,19 @@ function AgedReceivablesReport() {
               </TableHeader>
               <TableBody>
                 {data.rows.map((r: any) => (
-                  <TableRow key={r.id} className="hover:bg-slate-50">
+                  <TableRow key={r.id} className="hover:bg-[#F9FAFB]">
                     <TableCell className="text-sm font-medium">
                       {r.ledgerName}
                     </TableCell>
-                    <TableCell className="text-sm text-slate-600">
+                    <TableCell className="text-sm text-[#4B5563]">
                       {r.customerName}
                     </TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-md border text-xs font-medium ${
                           r.isReceivable
-                            ? "bg-rose-50 text-rose-700 border-rose-200"
-                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            ? "bg-[#DC2626]/10 text-[#991B1B] border-[#DC2626]/30"
+                            : "bg-[#D4AF37]/10 text-[#92730E] border-[#D4AF37]/30"
                         }`}
                       >
                         {r.isReceivable ? "Receivable" : "Payable"}
@@ -750,7 +750,7 @@ function AgedReceivablesReport() {
                     </TableCell>
                     <TableCell
                       className={`text-right font-mono text-sm font-semibold ${
-                        r.isReceivable ? "text-rose-600" : "text-emerald-700"
+                        r.isReceivable ? "text-[#DC2626]" : "text-[#92730E]"
                       }`}
                     >
                       {formatCurrency(Math.abs(r.balance))}
@@ -758,7 +758,7 @@ function AgedReceivablesReport() {
                     <TableCell className="text-right text-sm">
                       {r.daysOutstanding}
                     </TableCell>
-                    <TableCell className="text-xs text-slate-500">
+                    <TableCell className="text-xs text-[#6B7280]">
                       {formatDate(r.lastUpdated)}
                     </TableCell>
                   </TableRow>
@@ -767,7 +767,7 @@ function AgedReceivablesReport() {
                   <TableRow>
                     <TableCell
                       colSpan={6}
-                      className="text-center text-sm text-slate-400 py-8"
+                      className="text-center text-sm text-[#9CA3AF] py-8"
                     >
                       No outstanding balances
                     </TableCell>

@@ -31,14 +31,16 @@ import {
 } from "recharts";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 
+// JACXI brand palette — gold + jet black + warm greys
+// Status colors anchored to the brand book: PENDING=gold, DELIVERED=gold-deep, CANCELLED=red
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: "#f59e0b",
-  IN_YARD: "#3b82f6",
-  LOADED: "#a855f7",
-  IN_TRANSIT: "#06b6d4",
-  CUSTOMS: "#f97316",
-  DELIVERED: "#10b981",
-  CANCELLED: "#f43f5e",
+  PENDING: "#D4AF37",
+  IN_YARD: "#6B7280",
+  LOADED: "#9CA3AF",
+  IN_TRANSIT: "#9CA3AF",
+  CUSTOMS: "#F59E0B",
+  DELIVERED: "#92730E",
+  CANCELLED: "#DC2626",
 };
 
 export function DashboardView({
@@ -68,7 +70,7 @@ export function DashboardView({
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="h-28 bg-white rounded-xl border border-slate-200 animate-pulse"
+              className="h-28 bg-white rounded-xl border border-[#E5E7EB] animate-pulse"
             />
           ))}
         </div>
@@ -107,7 +109,7 @@ export function DashboardView({
         }
       />
 
-      {/* KPI Cards */}
+      {/* KPI Cards — JACXI brand: primary=jet black with gold, others snow-white with gold borders */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           label="Net Profit"
@@ -150,7 +152,7 @@ export function DashboardView({
           </CardHeader>
           <CardContent>
             {statusData.length === 0 ? (
-              <div className="h-[200px] flex items-center justify-center text-sm text-slate-400">
+              <div className="h-[200px] flex items-center justify-center text-sm text-[#9CA3AF]">
                 No vehicles yet
               </div>
             ) : (
@@ -167,7 +169,7 @@ export function DashboardView({
                     {statusData.map((entry, i) => (
                       <Cell
                         key={i}
-                        fill={STATUS_COLORS[entry.name] || "#94a3b8"}
+                        fill={STATUS_COLORS[entry.name] || "#9CA3AF"}
                       />
                     ))}
                   </Pie>
@@ -175,7 +177,8 @@ export function DashboardView({
                     contentStyle={{
                       fontSize: "12px",
                       borderRadius: "6px",
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid #E5E7EB",
+                      background: "#FFFFFF",
                     }}
                   />
                 </PieChart>
@@ -190,11 +193,11 @@ export function DashboardView({
                   <span
                     className="h-2 w-2 rounded-sm"
                     style={{
-                      background: STATUS_COLORS[s.name] || "#94a3b8",
+                      background: STATUS_COLORS[s.name] || "#9CA3AF",
                     }}
                   />
-                  <span className="text-slate-600">{s.name.replace(/_/g, " ")}</span>
-                  <span className="text-slate-400 ml-auto">{s.value}</span>
+                  <span className="text-[#374151]">{s.name.replace(/_/g, " ")}</span>
+                  <span className="text-[#9CA3AF] ml-auto">{s.value}</span>
                 </div>
               ))}
             </div>
@@ -219,7 +222,7 @@ export function DashboardView({
           </CardHeader>
           <CardContent>
             {topProfit.length === 0 ? (
-              <div className="h-[200px] flex items-center justify-center text-sm text-slate-400">
+              <div className="h-[200px] flex items-center justify-center text-sm text-[#9CA3AF]">
                 No profit data available
               </div>
             ) : (
@@ -227,29 +230,30 @@ export function DashboardView({
                 <BarChart data={topProfit} layout="vertical" margin={{ left: 0, right: 16 }}>
                   <CartesianGrid
                     horizontal={false}
-                    stroke="#f1f5f9"
+                    stroke="#F3F4F6"
                     strokeDasharray="3 3"
                   />
                   <XAxis
                     type="number"
-                    tick={{ fontSize: 11, fill: "#94a3b8" }}
+                    tick={{ fontSize: 11, fill: "#9CA3AF" }}
                     tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
                   />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    tick={{ fontSize: 11, fill: "#475569" }}
+                    tick={{ fontSize: 11, fill: "#374151" }}
                     width={90}
                   />
                   <Tooltip
                     contentStyle={{
                       fontSize: "12px",
                       borderRadius: "6px",
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid #E5E7EB",
+                      background: "#FFFFFF",
                     }}
                     formatter={(v: any) => formatCurrency(v)}
                   />
-                  <Bar dataKey="profit" fill="#0f172a" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="profit" fill="#000000" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -273,20 +277,20 @@ export function DashboardView({
             </Button>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-[#F3F4F6]">
               {(data?.recentVehicles || []).map((v: any) => (
                 <div
                   key={v.id}
-                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50"
+                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#F9FAFB]"
                 >
-                  <div className="h-9 w-9 rounded-md bg-slate-100 flex items-center justify-center">
-                    <Car className="h-4 w-4 text-slate-500" />
+                  <div className="h-9 w-9 rounded-md bg-black flex items-center justify-center">
+                    <Car className="h-4 w-4 text-[#D4AF37]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
+                    <p className="text-sm font-semibold truncate">
                       {v.make} {v.model} ({v.year})
                     </p>
-                    <p className="text-xs text-slate-500 font-mono truncate">
+                    <p className="text-xs text-[#6B7280] font-mono truncate">
                       {v.vin}
                     </p>
                   </div>
@@ -294,7 +298,7 @@ export function DashboardView({
                 </div>
               ))}
               {(data?.recentVehicles || []).length === 0 && (
-                <div className="px-4 py-8 text-center text-sm text-slate-400">
+                <div className="px-4 py-8 text-center text-sm text-[#9CA3AF]">
                   No vehicles yet
                 </div>
               )}
@@ -318,15 +322,15 @@ export function DashboardView({
             </Button>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-[#F3F4F6]">
               {(data?.customerLedgers || []).map((l: any) => (
                 <div
                   key={l.id}
-                  className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-slate-50"
+                  className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-[#F9FAFB]"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{l.name}</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-sm font-semibold truncate">{l.name}</p>
+                    <p className="text-xs text-[#6B7280]">
                       Updated {formatDate(l.updatedAt)}
                     </p>
                   </div>
@@ -334,15 +338,15 @@ export function DashboardView({
                     <p
                       className={
                         l.balance > 0
-                          ? "text-sm font-semibold text-rose-600"
+                          ? "text-sm font-semibold text-[#92730E]"
                           : l.balance < 0
-                          ? "text-sm font-semibold text-emerald-600"
-                          : "text-sm font-semibold text-slate-700"
+                          ? "text-sm font-semibold text-[#92730E]"
+                          : "text-sm font-semibold text-black"
                       }
                     >
                       {formatCurrency(l.balance)}
                     </p>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider">
+                    <p className="text-[10px] text-[#9CA3AF] uppercase tracking-brand">
                       {l.balance > 0
                         ? "Receivable"
                         : l.balance < 0
@@ -353,7 +357,7 @@ export function DashboardView({
                 </div>
               ))}
               {(data?.customerLedgers || []).length === 0 && (
-                <div className="px-4 py-8 text-center text-sm text-slate-400">
+                <div className="px-4 py-8 text-center text-sm text-[#9CA3AF]">
                   No ledgers yet
                 </div>
               )}
