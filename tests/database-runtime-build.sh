@@ -12,7 +12,7 @@ cat >"$FAKE_BIN/bun" <<'EOF'
 #!/bin/bash
 set -euo pipefail
 
-if [ "$#" -ne 2 ] || [ "$1" != "run" ] || [ "$2" != "db:push" ]; then
+if [ "$#" -ne 2 ] || [ "$1" != "run" ] || [ "$2" != "db:deploy" ]; then
     echo "unexpected bun invocation: $*" >&2
     exit 1
 fi

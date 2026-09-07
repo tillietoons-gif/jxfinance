@@ -9,7 +9,7 @@ DATABASE_URL="${DATABASE_URL:?DATABASE_URL is required for PostgreSQL schema syn
 echo "🗄️  同步 PostgreSQL 数据库结构..."
 (
     cd "$PROJECT_DIR"
-    DATABASE_URL="$DATABASE_URL" bun run db:push
+    DATABASE_URL="$DATABASE_URL" bun run db:deploy
 )
 
 echo "✅ PostgreSQL 数据库结构已同步"
