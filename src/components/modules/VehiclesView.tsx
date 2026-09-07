@@ -512,6 +512,7 @@ export function VehiclesView() {
                   <TabsTrigger value="billing">Billing</TabsTrigger>
                   <TabsTrigger value="payments">Payments</TabsTrigger>
                   <TabsTrigger value="invoices">Invoices</TabsTrigger>
+                  <TabsTrigger value="profit">Profit</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="expenses" className="mt-3">
@@ -810,8 +811,41 @@ function VehicleBillingTab({
   onChanged: () => void;
 }) {
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [creatingInvoice, setCreatingInvoice] = useState(false);
   const invoices = vehicle.invoices || [];
   const expenses = vehicle.expenses || [];
+  const unbilledExpenses = expenses.filter(
+    (expense: any) => !expense.invoiceId && Number(expense.customerCharge) > 0
+  );
+
+  const createDraftInvoice = async () => {
+    if (unbilledExpenses.length === 0) {
+      toast.info("No unbilled customer charges for this vehicle");
+      return;
+    }
+    setCreatingInvoice(true);
+    try {
+      const response = await fetch("/api/invoices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerId: vehicle.customerId,
+          vehicleId: vehicle.id,
+          status: "DRAFT",
+          dueDate: new Date(Date.now() + 30 * 86400000).toISOString(),
+          items: [],
+          expenseIds: unbilledExpenses.map((expense: any) => expense.id),
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to create invoice");
+      toast.success("Draft invoice created from vehicle charges");
+      onChanged();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create invoice");
+    } finally {
+      setCreatingInvoice(false);
+    }
+  };
 
   const updateBilling = async (expenseId: string, invoiceId: string) => {
     setBusyId(expenseId);
@@ -837,10 +871,17 @@ function VehicleBillingTab({
   return (
     <div className="space-y-3">
       <div className="rounded-lg border border-[#D4AF37]/30 bg-[#D4AF37]/10 p-3">
-        <p className="text-sm font-semibold">Vehicle billing</p>
-        <p className="mt-1 text-xs text-[#6B7280]">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold">Vehicle billing</p>
+            <p className="mt-1 text-xs text-[#6B7280]">
           Add customer-charge expenses to an invoice or dispute them to remove the billing assignment.
-        </p>
+            </p>
+          </div>
+          <Button size="sm" onClick={createDraftInvoice} disabled={creatingInvoice}>
+            {creatingInvoice ? "Creating…" : "Create draft invoice"}
+          </Button>
+        </div>
       </div>
       {expenses.length === 0 ? (
         <div className="rounded-lg border border-dashed p-6 text-center text-sm text-[#6B7280]">
@@ -880,6 +921,24 @@ function VehicleBillingTab({
               </Select>
             </div>
           ))}
+        </div>
+      )}
+      {(vehicle.billingHistory || []).length > 0 && (
+        <div className="rounded-md border border-[#E5E7EB] p-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#6B7280]">
+            Billing history
+          </p>
+          <div className="space-y-2">
+            {vehicle.billingHistory.map((event: any) => (
+              <div key={event.id} className="flex justify-between gap-3 text-xs">
+                <span className={event.action === "disputed" ? "text-red-700" : "text-[#374151]"}>
+                  {event.action === "disputed" ? "Expense disputed" : "Expense billed"}
+                  {event.details ? ` • ${event.details}` : ""}
+                </span>
+                <span className="shrink-0 text-[#6B7280]">{formatDate(event.createdAt)}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -65,11 +65,11 @@ export const INVOICE_STATUS_COLORS: Record<string, string> = {
   OVERDUE: "bg-rose-100 text-rose-700 border-rose-200",
 };
 
-export function formatCurrency(value: number | null | undefined): string {
+export function formatCurrency(value: number | null | undefined, currency = "USD"): string {
   const v = Number(value ?? 0);
   return v.toLocaleString("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: currency.toUpperCase(),
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -107,13 +107,13 @@ export function formatDateTime(value: Date | string | null | undefined): string 
   });
 }
 
-export function generateInvoiceNumber(): string {
+export function generateInvoiceNumber(prefix = "INV"): string {
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, "0");
   const d = String(now.getDate()).padStart(2, "0");
   const rand = Math.floor(Math.random() * 9000) + 1000;
-  return `INV-${y}${m}${d}-${rand}`;
+  return `${prefix.toUpperCase()}-${y}${m}${d}-${rand}`;
 }
 
 export function dateRangeFilter(

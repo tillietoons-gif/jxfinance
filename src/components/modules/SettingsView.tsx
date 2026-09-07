@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Building2, Save, Settings, Truck, Plus } from "lucide-react";
+import { Building2, Save, Settings, Truck, Plus, Pencil, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ export function SettingsView() {
   const [settings, setSettings] = useState(initialSettings);
   const [vendors, setVendors] = useState<any[]>([]);
   const [vendorName, setVendorName] = useState("");
+  const [editingVendor, setEditingVendor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -65,8 +66,8 @@ export function SettingsView() {
 
   const addVendor = async () => {
     if (!vendorName.trim()) return;
-    const response = await fetch("/api/vendors", {
-      method: "POST",
+    const response = await fetch(editingVendor ? `/api/vendors/${editingVendor.id}` : "/api/vendors", {
+      method: editingVendor ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: vendorName }),
     });
@@ -75,9 +76,11 @@ export function SettingsView() {
       return;
     }
     const vendor = await response.json();
-    setVendors((current) => [...current, vendor]);
+    if (editingVendor) setVendors((current) => current.map((item) => item.id === vendor.id ? vendor : item));
+    else setVendors((current) => [...current, vendor]);
     setVendorName("");
-    toast.success("Vendor added");
+    setEditingVendor(null);
+    toast.success(editingVendor ? "Vendor updated" : "Vendor added");
   };
 
   return (
@@ -133,10 +136,10 @@ export function SettingsView() {
             <p className="mt-1 text-xs text-[#6B7280]">Assign vendors to vehicle expenses and keep costs traceable.</p>
             <div className="mt-4 flex gap-2">
               <Input value={vendorName} onChange={(event) => setVendorName(event.target.value)} placeholder="Vendor name" onKeyDown={(event) => event.key === "Enter" && addVendor()} />
-              <Button size="icon" onClick={addVendor} aria-label="Add vendor"><Plus className="h-4 w-4" /></Button>
+              <Button size="icon" onClick={addVendor} aria-label={editingVendor ? "Update vendor" : "Add vendor"}><Plus className="h-4 w-4" /></Button>
             </div>
             <div className="mt-4 divide-y">
-              {vendors.map((vendor) => <div key={vendor.id} className="flex items-center justify-between py-3 text-sm"><span>{vendor.name}</span><span className="text-xs text-[#6B7280]">{vendor._count?.expenses || 0} expenses</span></div>)}
+              {vendors.map((vendor) => <div key={vendor.id} className="flex items-center justify-between gap-2 py-3 text-sm"><span>{vendor.name}</span><span className="ml-auto text-xs text-[#6B7280]">{vendor._count?.expenses || 0} expenses</span><Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingVendor(vendor); setVendorName(vendor.name); }} aria-label={`Edit ${vendor.name}`}><Pencil className="h-3.5 w-3.5" /></Button><Button size="icon" variant="ghost" className="h-7 w-7 text-red-700" onClick={async () => { if (!confirm(`Delete ${vendor.name}?`)) return; await fetch(`/api/vendors/${vendor.id}`, { method: "DELETE" }); setVendors((current) => current.filter((item) => item.id !== vendor.id)); }} aria-label={`Delete ${vendor.name}`}><Trash2 className="h-3.5 w-3.5" /></Button></div>)}
               {vendors.length === 0 && <p className="py-6 text-center text-sm text-[#6B7280]">No vendors yet.</p>}
             </div>
           </section>

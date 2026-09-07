@@ -3,7 +3,7 @@
 
 import ExcelJS from "exceljs";
 
-const HEADER_FILL: Partial<ExcelJS.Fill> = {
+const HEADER_FILL: ExcelJS.Fill = {
   type: "pattern",
   pattern: "solid",
   fgColor: { argb: "FF0F172A" }, // slate-900

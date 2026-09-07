@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { z } from "zod";
+import { expenseSchema, writeAuditLog } from "@/lib/api";
 
 export async function PUT(
   req: NextRequest,
@@ -8,7 +9,9 @@ export async function PUT(
 ) {
   const { id } = await params;
   try {
-    const body = await req.json();
+    const parsed = expenseSchema.safeParse(await req.json());
+    if (!parsed.success) return NextResponse.json({ error: "Invalid expense data", issues: parsed.error.issues }, { status: 400 });
+    const body = parsed.data;
     const existing = await db.expense.findUnique({
       where: { id },
       include: { vehicle: true },
@@ -64,12 +67,15 @@ export async function PUT(
       where: { id },
       data: {
         title: body.title,
+        category: body.category || null,
+        vendorId: body.vendorId || null,
+        receiptUrl: body.receiptUrl || null,
         customerCharge,
         companyCost,
         profit,
         notes: body.notes || null,
       },
-      include: { vehicle: { include: { customer: true } } },
+      include: { vehicle: { include: { customer: true } }, vendor: true },
     });
 
     // Re-add new entries
@@ -148,6 +154,15 @@ export async function PATCH(
       where: { id },
       data: { invoiceId: parsed.data.invoiceId },
       include: { invoice: true },
+    });
+    await writeAuditLog({
+      entity: "Expense",
+      entityId: id,
+      customerId: existing.vehicle.customerId,
+      action: parsed.data.invoiceId ? "billed" : "disputed",
+      details: parsed.data.invoiceId
+        ? `Assigned to invoice ${parsed.data.invoiceId}`
+        : "Removed from invoice billing",
     });
     const affectedInvoiceIds = [existing.invoiceId, parsed.data.invoiceId].filter(
       (invoiceId): invoiceId is string => Boolean(invoiceId)

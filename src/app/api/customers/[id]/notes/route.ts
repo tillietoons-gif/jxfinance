@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { db } from "@/lib/db";
 import { serverError, validationError } from "@/lib/api";
+import { z } from "zod";
 
 const noteSchema = z.object({ content: z.string().trim().min(1).max(2000) });
 
@@ -17,7 +17,13 @@ export async function POST(
       data: { customerId: id, content: parsed.data.content },
     });
     await db.auditLog.create({
-      data: { customerId: id, entity: "CustomerNote", entityId: note.id, action: "created", details: note.content },
+      data: {
+        customerId: id,
+        entity: "CustomerNote",
+        entityId: note.id,
+        action: "created",
+        details: note.content,
+      },
     });
     return NextResponse.json(note, { status: 201 });
   } catch (error) {

@@ -323,18 +323,21 @@ function PaymentFormDialog({
   const [form, setForm] = useState({
     customerId: "",
     vehicleId: "",
+    invoiceId: "",
     amount: 0,
     method: PAYMENT_METHODS[0] as string,
     referenceNo: "",
     notes: "",
   });
   const [saving, setSaving] = useState(false);
+  const [invoices, setInvoices] = useState<any[]>([]);
 
   useEffect(() => {
     if (open) {
       setForm({
         customerId: customers[0]?.id || "",
         vehicleId: "",
+        invoiceId: "",
         amount: 0,
         method: PAYMENT_METHODS[0],
         referenceNo: "",
@@ -342,6 +345,17 @@ function PaymentFormDialog({
       });
     }
   }, [open, customers]);
+
+  useEffect(() => {
+    if (!form.customerId) {
+      setInvoices([]);
+      return;
+    }
+    fetch(`/api/invoices?customerId=${encodeURIComponent(form.customerId)}`)
+      .then((response) => (response.ok ? response.json() : []))
+      .then(setInvoices)
+      .catch(() => setInvoices([]));
+  }, [form.customerId]);
 
   const customerVehicles = vehicles.filter(
     (v) => v.customerId === form.customerId
@@ -416,6 +430,21 @@ function PaymentFormDialog({
                   <SelectItem key={v.id} value={v.id}>
                     {v.vin} — {v.make} {v.model}
                   </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Apply to invoice</Label>
+            <Select
+              value={form.invoiceId || "none"}
+              onValueChange={(v) => setForm({ ...form, invoiceId: v === "none" ? "" : v })}
+            >
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Account-level payment" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Account-level payment</SelectItem>
+                {invoices.filter((invoice) => invoice.status !== "PAID").map((invoice) => (
+                  <SelectItem key={invoice.id} value={invoice.id}>{invoice.invoiceNumber} • {formatCurrency(invoice.total)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

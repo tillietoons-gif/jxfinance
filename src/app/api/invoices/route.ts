@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
         customer: true,
         vehicle: true,
         items: true,
+        expenses: true,
         payments: true,
         _count: { select: { expenses: true } },
       },
@@ -37,14 +38,16 @@ export async function POST(req: NextRequest) {
     const parsed = invoiceSchema.safeParse(await req.json());
     if (!parsed.success) return validationError(parsed.error);
     const body = parsed.data;
+    const settings = await db.appSettings.findUnique({ where: { id: "default" } });
     const items = body.items || [];
     const itemSubtotal = items.reduce(
       (s: number, it: any) => s + Number(it.total || it.unitPrice * it.quantity || 0),
       0
     );
-    const attachedExpenses = body.expenseIds.length
+    const expenseIds = body.expenseIds || [];
+    const attachedExpenses = expenseIds.length
       ? await db.expense.findMany({
-          where: { id: { in: body.expenseIds }, invoiceId: null, vehicle: { customerId: body.customerId } },
+          where: { id: { in: expenseIds }, invoiceId: null, vehicle: { customerId: body.customerId } },
           select: { customerCharge: true },
         })
       : [];
@@ -54,7 +57,7 @@ export async function POST(req: NextRequest) {
     const total = subtotal + tax;
     const invoice = await db.invoice.create({
       data: {
-        invoiceNumber: body.invoiceNumber || generateInvoiceNumber(),
+        invoiceNumber: body.invoiceNumber || generateInvoiceNumber(settings?.invoicePrefix || "INV"),
         customerId: body.customerId,
         vehicleId: body.vehicleId || null,
         status: body.status,
@@ -73,9 +76,9 @@ export async function POST(req: NextRequest) {
       },
       include: { items: true, customer: true, vehicle: true },
     });
-    if (body.expenseIds.length > 0) {
+    if (expenseIds.length > 0) {
       await db.expense.updateMany({
-        where: { id: { in: body.expenseIds }, invoiceId: null, vehicle: { customerId: invoice.customerId } },
+        where: { id: { in: expenseIds }, invoiceId: null, vehicle: { customerId: invoice.customerId } },
         data: { invoiceId: invoice.id },
       });
     }

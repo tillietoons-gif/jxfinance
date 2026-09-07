@@ -193,7 +193,12 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
   const contentWidth = pageWidth - marginX * 2; // 182
 
   const { invoice, customer, vehicle, items } = data;
-  const logoData = data.logoUrl ? await loadImageData(data.logoUrl) : null;
+  const settings = await fetch("/api/settings")
+    .then((response) => (response.ok ? response.json() : null))
+    .catch(() => null);
+  const currency = settings?.currency || "USD";
+  const money = (value: number | null | undefined) => formatCurrency(value, currency);
+  const logoData = await loadImageData(data.logoUrl || "/api/settings/logo");
 
   // -------------------------------------------------------------------------
   // 1. TOP GOLD BAR (full width, ~10mm tall)
@@ -388,8 +393,8 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
       String(it.description || "").toUpperCase(),
       inferLineItemType(it.description || ""),
       String(it.quantity || 1),
-      formatCurrency(it.unitPrice),
-      formatCurrency(it.total),
+      money(it.unitPrice),
+      money(it.total),
     ]),
     theme: "plain",
     margin: { left: marginX, right: marginX },
@@ -447,7 +452,7 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
   doc.setTextColor(...JACXI.darkGrey);
   doc.text("Subtotal", totalsLabelX, endY);
   doc.setTextColor(...JACXI.black);
-  doc.text(formatCurrency(invoice.subtotal), totalsValueX, endY, {
+  doc.text(money(invoice.subtotal), totalsValueX, endY, {
     align: "right",
   });
 
@@ -459,7 +464,7 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
     doc.setTextColor(...JACXI.medGrey);
     doc.text("Tax", totalsLabelX, endY);
     doc.setTextColor(...JACXI.darkGrey);
-    doc.text(formatCurrency(invoice.tax), totalsValueX, endY, {
+    doc.text(money(invoice.tax), totalsValueX, endY, {
       align: "right",
     });
   }
@@ -471,7 +476,7 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
   doc.setTextColor(...JACXI.black);
   doc.text("TOTAL", totalsLabelX, endY);
   doc.setTextColor(...JACXI.gold);
-  doc.text(formatCurrency(invoice.total), totalsValueX, endY, {
+  doc.text(money(invoice.total), totalsValueX, endY, {
     align: "right",
   });
 
@@ -490,7 +495,7 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(...JACXI.medGrey);
-  const thankYouText = `Thank you for your business with ${JACXI.brand} ${JACXI.subbrand}`;
+  const thankYouText = `Thank you for your business with ${settings?.companyName || `${JACXI.brand} ${JACXI.subbrand}`}`;
   doc.text(thankYouText, pageWidth / 2, footerY + 6, { align: "center" });
 
   // Confidentiality notice — smaller, dimmer grey, italic-style (helvetica has no italic-bold)

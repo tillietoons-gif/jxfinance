@@ -11,7 +11,7 @@ export async function GET(
       where: { id },
       include: {
         customer: true,
-        expenses: { orderBy: { createdAt: "desc" } },
+        expenses: { orderBy: { createdAt: "desc" }, include: { vendor: true } },
         payments: {
           orderBy: { createdAt: "desc" },
           include: { customer: true },
@@ -38,6 +38,16 @@ export async function GET(
       0
     );
     const margin = totalCharge > 0 ? (profit / totalCharge) * 100 : 0;
+    const billingHistory = vehicle.expenses.length
+      ? await db.auditLog.findMany({
+          where: {
+            entity: "Expense",
+            entityId: { in: vehicle.expenses.map((expense) => expense.id) },
+            action: { in: ["billed", "disputed"] },
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : [];
     return NextResponse.json({
       ...vehicle,
       totalCharge,
@@ -45,6 +55,7 @@ export async function GET(
       profit,
       paymentsReceived,
       margin,
+      billingHistory,
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,15 @@ import {
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/types";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const EXPENSE_CATEGORIES = ["Freight", "Customs", "Storage", "Repair", "Insurance", "Other"];
 
 export function VehicleDetailExpenses({
   vehicle,
@@ -26,15 +35,28 @@ export function VehicleDetailExpenses({
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState({
     title: "",
+    category: "",
+    vendorId: "",
+    receiptUrl: "",
     customerCharge: 0,
     companyCost: 0,
     notes: "",
   });
+  const [vendors, setVendors] = useState<any[]>([]);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/vendors")
+      .then((response) => (response.ok ? response.json() : []))
+      .then(setVendors)
+      .catch(() => setVendors([]));
+  }, []);
 
   const openAdd = () => {
     setEditing(null);
-    setForm({ title: "", customerCharge: 0, companyCost: 0, notes: "" });
+    setForm({ title: "", category: "", vendorId: "", receiptUrl: "", customerCharge: 0, companyCost: 0, notes: "" });
+    setReceiptFile(null);
     setShowForm(true);
   };
 
@@ -42,10 +64,14 @@ export function VehicleDetailExpenses({
     setEditing(e);
     setForm({
       title: e.title,
+      category: e.category || "",
+      vendorId: e.vendorId || "",
+      receiptUrl: e.receiptUrl || "",
       customerCharge: e.customerCharge,
       companyCost: e.companyCost,
       notes: e.notes || "",
     });
+    setReceiptFile(null);
     setShowForm(true);
   };
 
@@ -58,11 +84,23 @@ export function VehicleDetailExpenses({
     try {
       const url = editing ? `/api/expenses/${editing.id}` : "/api/expenses";
       const method = editing ? "PUT" : "POST";
+      let receiptUrl = form.receiptUrl;
+      if (receiptFile) {
+        const upload = new FormData();
+        upload.append("file", receiptFile);
+        const uploadResponse = await fetch("/api/uploads/receipts", {
+          method: "POST",
+          body: upload,
+        });
+        if (!uploadResponse.ok) throw new Error("Receipt upload failed");
+        receiptUrl = (await uploadResponse.json()).url;
+      }
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          receiptUrl,
           vehicleId: vehicle.id,
         }),
       });
@@ -149,6 +187,48 @@ export function VehicleDetailExpenses({
               />
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs">Category</Label>
+              <Select
+                value={form.category || "none"}
+                onValueChange={(value) => setForm({ ...form, category: value === "none" ? "" : value })}
+              >
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select category" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Uncategorized</SelectItem>
+                  {EXPENSE_CATEGORIES.map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Vendor</Label>
+              <Select
+                value={form.vendorId || "none"}
+                onValueChange={(value) => setForm({ ...form, vendorId: value === "none" ? "" : value })}
+              >
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select vendor" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No vendor</SelectItem>
+                  {vendors.map((vendor) => <SelectItem key={vendor.id} value={vendor.id}>{vendor.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Receipt</Label>
+            <Input
+              className="mt-1"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              onChange={(event) => setReceiptFile(event.target.files?.[0] || null)}
+            />
+            {form.receiptUrl && !receiptFile && (
+              <a className="mt-1 block text-xs text-[#92730E] underline" href={form.receiptUrl} target="_blank" rel="noreferrer">
+                View current receipt
+              </a>
+            )}
+          </div>
           <div className="rounded-md bg-[#D4AF37]/10 border border-[#D4AF37]/30 px-3 py-1.5 flex items-center justify-between">
             <span className="text-xs text-[#92730E] font-medium">
               Auto Profit
@@ -193,7 +273,10 @@ export function VehicleDetailExpenses({
               </div>
               <div>
                 <p className="text-sm font-medium">{e.title}</p>
-                <p className="text-xs text-[#6B7280]">{formatDate(e.createdAt)}</p>
+                <p className="text-xs text-[#6B7280]">
+                  {e.category || "Uncategorized"} • {formatDate(e.createdAt)}
+                  {e.vendor?.name ? ` • ${e.vendor.name}` : ""}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-4 text-xs font-mono">

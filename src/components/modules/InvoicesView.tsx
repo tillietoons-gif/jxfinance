@@ -585,8 +585,15 @@ function InvoiceFormDialog({
     items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
   });
   const [saving, setSaving] = useState(false);
+  const [invoiceDefaults, setInvoiceDefaults] = useState({ prefix: "INV", taxRate: 0 });
 
   useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((settings) => {
+        if (settings) setInvoiceDefaults({ prefix: settings.invoicePrefix || "INV", taxRate: Number(settings.taxRate || 0) });
+      })
+      .catch(() => undefined);
     if (editing) {
       setForm({
         invoiceNumber: editing.invoiceNumber,
@@ -605,7 +612,7 @@ function InvoiceFormDialog({
       });
     } else {
       setForm({
-        invoiceNumber: generateInvoiceNumber(),
+        invoiceNumber: generateInvoiceNumber(invoiceDefaults.prefix),
         customerId: customers[0]?.id || "",
         vehicleId: "",
         status: "DRAFT",
@@ -613,11 +620,11 @@ function InvoiceFormDialog({
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
           .toISOString()
           .slice(0, 10),
-        tax: 0,
+        tax: invoiceDefaults.taxRate,
         items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
       });
     }
-  }, [editing, customers, open]);
+  }, [editing, customers, open, invoiceDefaults.prefix, invoiceDefaults.taxRate]);
 
   const customerVehicles = vehicles.filter(
     (v) => v.customerId === form.customerId

@@ -50,7 +50,7 @@ export const invoiceSchema = z.object({
   dueDate: z.coerce.date(),
   tax: z.coerce.number().finite().nonnegative().default(0),
   items: z.array(invoiceItemSchema).max(200).default([]),
-  expenseIds: z.array(z.string().min(1)).max(500).default([]),
+  expenseIds: z.array(z.string().min(1)).max(500).optional(),
 });
 
 export const paymentSchema = z.object({
