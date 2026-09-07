@@ -1,0 +1,132 @@
+// Vehicle Logistics & Financial Management System
+// Solo Operator Edition - SQLite Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// --- Customer ---
+model Customer {
+  id           String        @id @default(cuid())
+  name         String
+  companyName  String?
+  email        String?
+  phone        String?
+  address      String?
+  vehicles     Vehicle[]
+  ledgers      Ledger[]
+  invoices     Invoice[]
+  payments     Payment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+// --- Vehicle ---
+model Vehicle {
+  id            String          @id @default(cuid())
+  vin           String          @unique
+  make          String
+  model         String
+  year          Int
+  destination   String
+  status        String          @default("PENDING")
+  notes         String?
+  customerId    String
+  customer      Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  expenses      Expense[]
+  invoices      Invoice[]
+  payments      Payment[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+// --- Ledger (Customer / Company) ---
+model Ledger {
+  id           String              @id @default(cuid())
+  name         String
+  type         String              // "CUSTOMER" or "COMPANY"
+  customerId   String?
+  customer     Customer?           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  balance      Float               @default(0.0)
+  transactions LedgerTransaction[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+// --- Ledger Transaction ---
+model LedgerTransaction {
+  id          String   @id @default(cuid())
+  ledgerId    String
+  ledger      Ledger   @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
+  amount      Float
+  type        String   // "DEBIT" or "CREDIT"
+  description String
+  referenceId String?
+  createdAt   DateTime @default(now())
+}
+
+// --- Expense (dual-sided: customer charge vs company cost) ---
+model Expense {
+  id              String    @id @default(cuid())
+  vehicleId       String
+  vehicle         Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  title           String
+  customerCharge  Float     @default(0)
+  companyCost     Float     @default(0)
+  profit          Float     @default(0)
+  notes           String?
+  invoiceId       String?
+  invoice         Invoice?  @relation(fields: [invoiceId], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// --- Payment ---
+model Payment {
+  id          String    @id @default(cuid())
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vehicleId   String?
+  vehicle     Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  amount      Float
+  method      String
+  referenceNo String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+}
+
+// --- Invoice ---
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vehicleId     String?
+  vehicle       Vehicle?      @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  status        String        @default("DRAFT")
+  issueDate     DateTime      @default(now())
+  dueDate       DateTime
+  subtotal      Float         @default(0)
+  tax           Float         @default(0)
+  total         Float         @default(0)
+  items         InvoiceItem[]
+  expenses      Expense[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+// --- Invoice Item ---
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Int      @default(1)
+  unitPrice   Float    @default(0)
+  total       Float    @default(0)
+}
