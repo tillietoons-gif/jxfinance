@@ -141,7 +141,7 @@ export interface InvoicePdfData {
   logoUrl?: string;
 }
 
-async function loadImageData(url: string): Promise<{ data: string; format: "PNG" | "JPEG" } | null> {
+async function loadImageData(url: string): Promise<{ data: string; format: "PNG" | "JPEG"; width: number; height: number } | null> {
   try {
     const response = await fetch(url);
     if (!response.ok) return null;
@@ -156,11 +156,13 @@ async function loadImageData(url: string): Promise<{ data: string; format: "PNG"
           element.src = objectUrl;
         });
         if (!image) return null;
+        const width = image.naturalWidth || 400;
+        const height = image.naturalHeight || 200;
         const canvas = document.createElement("canvas");
-        canvas.width = image.naturalWidth || 400;
-        canvas.height = image.naturalHeight || 200;
+        canvas.width = width;
+        canvas.height = height;
         canvas.getContext("2d")?.drawImage(image, 0, 0);
-        return { data: canvas.toDataURL("image/png"), format: "PNG" };
+        return { data: canvas.toDataURL("image/png"), format: "PNG", width, height };
       } finally {
         URL.revokeObjectURL(objectUrl);
       }
@@ -172,10 +174,15 @@ async function loadImageData(url: string): Promise<{ data: string; format: "PNG"
           resolve(null);
           return;
         }
-        resolve({
-          data: reader.result,
+        const image = new Image();
+        image.onload = () => resolve({
+          data: reader.result as string,
           format: blob.type === "image/jpeg" || blob.type === "image/jpg" ? "JPEG" : "PNG",
+          width: image.naturalWidth || 400,
+          height: image.naturalHeight || 200,
         });
+        image.onerror = () => resolve(null);
+        image.src = reader.result;
       };
       reader.onerror = () => resolve(null);
       reader.readAsDataURL(blob);
@@ -198,7 +205,7 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
     .catch(() => null);
   const currency = settings?.currency || "USD";
   const money = (value: number | null | undefined) => formatCurrency(value, currency);
-  const logoData = await loadImageData(data.logoUrl || "/api/settings/logo");
+  const logoData = await loadImageData(data.logoUrl || "/logo.svg");
 
   // -------------------------------------------------------------------------
   // 1. TOP GOLD BAR (full width, ~10mm tall)
@@ -212,7 +219,21 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
   let y = 26;
   if (logoData) {
     try {
-      doc.addImage(logoData.data, logoData.format, marginX, 13, 32, 18, undefined, "FAST");
+      const maxLogoWidth = 32;
+      const maxLogoHeight = 18;
+      const scale = Math.min(maxLogoWidth / logoData.width, maxLogoHeight / logoData.height);
+      const logoWidth = logoData.width * scale;
+      const logoHeight = logoData.height * scale;
+      doc.addImage(
+        logoData.data,
+        logoData.format,
+        marginX,
+        13 + (maxLogoHeight - logoHeight) / 2,
+        logoWidth,
+        logoHeight,
+        undefined,
+        "FAST"
+      );
     } catch {
       // Fall back to the text wordmark if the configured image format is unsupported.
     }
