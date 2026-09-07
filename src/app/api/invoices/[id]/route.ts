@@ -16,7 +16,7 @@ export async function GET(
         customer: true,
         vehicle: { include: { expenses: true } },
         items: true,
-        expenses: true,
+        expenses: { include: { vehicle: true } },
         payments: true,
       },
     });
