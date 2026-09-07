@@ -38,10 +38,18 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) return validationError(parsed.error);
     const body = parsed.data;
     const items = body.items || [];
-    const subtotal = items.reduce(
+    const itemSubtotal = items.reduce(
       (s: number, it: any) => s + Number(it.total || it.unitPrice * it.quantity || 0),
       0
     );
+    const attachedExpenses = body.expenseIds.length
+      ? await db.expense.findMany({
+          where: { id: { in: body.expenseIds }, invoiceId: null, vehicle: { customerId: body.customerId } },
+          select: { customerCharge: true },
+        })
+      : [];
+    const expenseSubtotal = attachedExpenses.reduce((sum, expense) => sum + expense.customerCharge, 0);
+    const subtotal = itemSubtotal + expenseSubtotal;
     const tax = Number(body.tax || 0);
     const total = subtotal + tax;
     const invoice = await db.invoice.create({
@@ -65,6 +73,12 @@ export async function POST(req: NextRequest) {
       },
       include: { items: true, customer: true, vehicle: true },
     });
+    if (body.expenseIds.length > 0) {
+      await db.expense.updateMany({
+        where: { id: { in: body.expenseIds }, invoiceId: null, vehicle: { customerId: invoice.customerId } },
+        data: { invoiceId: invoice.id },
+      });
+    }
 
     // Add invoice total as a DEBIT to the customer ledger
     if (invoice.status === "ISSUED" && invoice.total > 0) {

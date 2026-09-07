@@ -49,10 +49,22 @@ export async function PUT(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const items = body.items || [];
-    const subtotal = items.reduce(
+    const itemSubtotal = items.reduce(
       (s: number, it: any) => s + Number(it.total || it.unitPrice * it.quantity || 0),
       0
     );
+    const attachedExpenses = body.expenseIds.length
+      ? await db.expense.findMany({
+          where: {
+            id: { in: body.expenseIds },
+            OR: [{ invoiceId: null }, { invoiceId: id }],
+            vehicle: { customerId: body.customerId },
+          },
+          select: { customerCharge: true },
+        })
+      : [];
+    const expenseSubtotal = attachedExpenses.reduce((sum, expense) => sum + expense.customerCharge, 0);
+    const subtotal = itemSubtotal + expenseSubtotal;
     const tax = Number(body.tax || 0);
     const total = subtotal + tax;
 
@@ -80,6 +92,17 @@ export async function PUT(
       },
       include: { items: true, customer: true, vehicle: true },
     });
+    await db.expense.updateMany({ where: { invoiceId: id }, data: { invoiceId: null } });
+    if (body.expenseIds.length > 0) {
+      await db.expense.updateMany({
+        where: {
+          id: { in: body.expenseIds },
+          OR: [{ invoiceId: null }, { invoiceId: id }],
+          vehicle: { customerId: updated.customerId },
+        },
+        data: { invoiceId: id },
+      });
+    }
     return NextResponse.json(updated);
   } catch (e) {
     return serverError(e);

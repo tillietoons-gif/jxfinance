@@ -6,10 +6,14 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const vehicleId = searchParams.get("vehicleId");
+    const customerId = searchParams.get("customerId");
     const expenses = await db.expense.findMany({
-      where: { ...(vehicleId ? { vehicleId } : {}) },
+      where: {
+        ...(vehicleId ? { vehicleId } : {}),
+        ...(customerId ? { vehicle: { customerId } } : {}),
+      },
       orderBy: { createdAt: "desc" },
-      include: { vehicle: { include: { customer: true } } },
+      include: { vehicle: { include: { customer: true } }, vendor: true },
     });
     return NextResponse.json(expenses);
   } catch (e) {
