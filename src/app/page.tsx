@@ -55,11 +55,14 @@ function SidebarContent({
     <div className="flex flex-col h-full bg-white">
       {/* Brand header — JACXI wordmark + SHIPPING sub-label
           Matches brand book cover: Extra Bold Black wordmark, widely-tracked grey subtitle */}
-      <div className="px-5 pt-6 pb-5 border-b border-[#E5E7EB]">
-        <h1 className="brand-wordmark text-2xl text-black leading-none">
+      <div className="px-5 pt-7 pb-6 border-b border-[#E3E3DF]">
+        <p className="mb-2 text-[9px] font-semibold uppercase tracking-wider-brand text-[#92730E]">
+          Vehicle logistics / finance
+        </p>
+        <h1 className="brand-wordmark text-3xl text-black leading-none">
           JACXI
         </h1>
-        <p className="mt-1.5 text-[10px] font-semibold text-[#6B7280] uppercase tracking-brand">
+        <p className="mt-2 text-[10px] font-semibold text-[#6B7280] uppercase tracking-brand">
           Shipping
         </p>
         {/* Subtle gold accent rule under the brand */}
@@ -79,7 +82,7 @@ function SidebarContent({
               key={item.id}
               onClick={() => onNavigate(item.id)}
               className={cn(
-                "relative w-full group flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all",
+                "relative w-full group flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all",
                 active
                   ? "bg-black text-white"
                   : "text-[#374151] hover:bg-[#F9FAFB] hover:text-black"
@@ -104,7 +107,7 @@ function SidebarContent({
       </nav>
 
       {/* Brand footer — values: Transparency, Precision, Reliability */}
-      <div className="px-5 py-4 border-t border-[#E5E7EB]">
+      <div className="px-5 py-4 border-t border-[#E3E3DF]">
         <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-brand mb-1.5">
           Brand Values
         </p>
@@ -113,6 +116,8 @@ function SidebarContent({
           Precision<span className="text-[#D4AF37] mx-1.5">·</span>
           Reliability
         </p>
+        <div className="mt-3 h-px brand-accent-line" />
+        <p className="mt-2 text-[10px] text-[#9CA3AF]">North America → Afghanistan</p>
       </div>
     </div>
   );
@@ -132,9 +137,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#F9FAFB]">
+    <div className="workspace-surface min-h-screen flex">
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-60 shrink-0 flex-col bg-white border-r border-[#E5E7EB] sticky top-0 h-screen">
+      <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-white border-r border-[#E3E3DF] sticky top-0 h-screen">
         <SidebarContent view={view} onNavigate={handleNavigate} />
       </aside>
 
@@ -148,7 +153,7 @@ export default function Home() {
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar (mobile only) */}
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[#E5E7EB] lg:hidden">
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[#E3E3DF] lg:hidden">
           <div className="flex items-center justify-between px-4 h-14">
             <button
               onClick={() => setMobileOpen(true)}
@@ -157,9 +162,10 @@ export default function Home() {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <span className="brand-wordmark text-sm text-black tracking-tight">
-              JACXI
-            </span>
+            <div className="text-center">
+              <span className="brand-wordmark block text-sm text-black tracking-tight">JACXI</span>
+              <span className="block text-[8px] font-semibold uppercase tracking-brand text-[#92730E]">Shipping</span>
+            </div>
             <div className="w-7" />
           </div>
         </header>
