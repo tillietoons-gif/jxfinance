@@ -46,6 +46,7 @@ export const invoiceSchema = z.object({
   invoiceNumber: z.string().trim().max(80).optional().or(z.literal("")),
   customerId: z.string().min(1),
   vehicleId: z.string().min(1).optional().or(z.literal("")),
+  vehicleIds: z.array(z.string().min(1)).max(200).optional(),
   status: z.enum(["DRAFT", "ISSUED", "PAID", "PARTIALLY_PAID", "OVERDUE"]).default("DRAFT"),
   issueDate: z.coerce.date().optional(),
   dueDate: z.coerce.date(),
