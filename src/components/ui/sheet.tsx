@@ -19,18 +19,18 @@ const useStyles = makeStyles({
   description: { color: tokens.colorNeutralForeground2, lineHeight: tokens.lineHeightBase300 },
 });
 
-export function Sheet({ open, onOpenChange, children, ...props }: { open?: boolean; onOpenChange?: (open: boolean) => void; children: React.ReactNode } & Partial<DrawerProps>) {
+export function Sheet({ open, onOpenChange, children, size = "medium", position = "end", ...props }: { open?: boolean; onOpenChange?: (open: boolean) => void; children: React.ReactNode; size?: "small" | "medium" | "large" | "full"; position?: "start" | "end" | "top" | "bottom" } & Partial<DrawerProps>) {
   const FluentDrawer = Drawer as any;
-  return <FluentDrawer open={open} onOpenChange={(_, data) => onOpenChange?.(data.open)} {...props}>{children as any}</FluentDrawer>;
+  return <FluentDrawer open={open} size={size} position={position} onOpenChange={(_, data) => onOpenChange?.(data.open)} {...props}>{children as any}</FluentDrawer>;
 }
 
 export function SheetTrigger({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export function SheetContent({ children, className, side: _side, ...props }: any) {
+export function SheetContent({ children, className, side: _side, style, ...props }: any) {
   const styles = useStyles();
-  return <DrawerBody className={`${styles.body}${className ? ` ${className}` : ""}`} {...props}>{children}</DrawerBody>;
+  return <DrawerBody className={`${styles.body}${className ? ` ${className}` : ""}`} style={{ width: "100%", minWidth: 0, boxSizing: "border-box", ...style }} {...props}>{children}</DrawerBody>;
 }
 
 export function SheetHeader({ children, className, ...props }: any) { return <DrawerHeader className={className} {...props}>{children}</DrawerHeader>; }
