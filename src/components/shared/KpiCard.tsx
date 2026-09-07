@@ -41,13 +41,13 @@ export function KpiCard({
   return (
     <Card
       className={cn(
-        "border overflow-hidden shadow-none transition-all",
+        "border overflow-hidden shadow-none transition-all rounded-md",
         variants[variant],
-        variant === "default" && "hover:border-[#D4AF37]/50",
+        variant === "default" && "hover:border-[#D4AF37]/50 hover:-translate-y-0.5 hover:shadow-md",
         className
       )}
     >
-      <CardContent className="p-4">
+      <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div className="space-y-1.5">
             <p
@@ -58,7 +58,7 @@ export function KpiCard({
             >
               {label}
             </p>
-            <p className="text-2xl font-bold tracking-tight">{value}</p>
+            <p className="text-2xl font-bold tracking-[-0.03em]">{value}</p>
             {hint && (
               <p
                 className={cn(
