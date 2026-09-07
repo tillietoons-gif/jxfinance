@@ -1,108 +1,21 @@
-"use client";
+'use client';
 
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-import { LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Card, Text, Title2, makeStyles, tokens } from '@fluentui/react-components';
+import type { ReactNode, ComponentType } from 'react';
 
-interface Props {
-  label: string;
-  value: string | number;
-  hint?: string;
-  icon?: LucideIcon;
-  trend?: { value: string; positive?: boolean };
-  variant?: "default" | "primary" | "success" | "warning" | "danger";
-  className?: string;
-}
+const useStyles = makeStyles({
+  card: { padding: tokens.spacingHorizontalL, minHeight: '132px', borderTop: `${tokens.strokeWidthThick} solid ${tokens.colorBrandBackground}`, transitionDuration: tokens.durationFast },
+  primary: { backgroundColor: tokens.colorNeutralBackgroundInverted, color: tokens.colorNeutralForegroundInverted, borderTopColor: tokens.colorBrandBackground },
+  row: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: tokens.spacingHorizontalM },
+  label: { display: 'block', color: tokens.colorNeutralForeground3, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: tokens.spacingVerticalS },
+  primaryLabel: { color: tokens.colorBrandForeground2 },
+  hint: { display: 'block', color: tokens.colorNeutralForeground3, marginTop: tokens.spacingVerticalS },
+  primaryHint: { color: tokens.colorNeutralForegroundInverted },
+  icon: { display: 'grid', placeItems: 'center', width: '32px', height: '32px', borderRadius: tokens.borderRadiusMedium, backgroundColor: tokens.colorBrandBackground2, color: tokens.colorBrandForeground1 },
+});
 
-// JACXI brand variants — gilded minimalism
-// default: pure white card with subtle grey border
-// primary: jet black bg with gold accent (premium KPI)
-// success/warning/danger: snow-white bg with tinted border + tinted label
-const variants: Record<string, string> = {
-  default: "bg-white text-black border-[#E5E7EB]",
-  primary: "bg-black text-white border-black",
-  success: "bg-white text-black border-[#D4AF37]/40",
-  warning: "bg-white text-black border-[#F59E0B]/40",
-  danger: "bg-white text-black border-[#DC2626]/40",
-};
-
-export function KpiCard({
-  label,
-  value,
-  hint,
-  icon: Icon,
-  trend,
-  variant = "default",
-  className,
-}: Props) {
-  return (
-    <Card
-      className={cn(
-        "border overflow-hidden shadow-none transition-all rounded-md",
-        variants[variant],
-        variant === "default" && "hover:border-[#D4AF37]/50 hover:-translate-y-0.5 hover:shadow-md",
-        className
-      )}
-    >
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1.5">
-            <p
-              className={cn(
-                "text-[10px] font-semibold uppercase tracking-brand",
-                variant === "primary" ? "text-[#D4AF37]" : "text-[#6B7280]"
-              )}
-            >
-              {label}
-            </p>
-            <p className="text-2xl font-bold tracking-[-0.03em]">{value}</p>
-            {hint && (
-              <p
-                className={cn(
-                  "text-xs",
-                  variant === "primary" ? "text-white/60" : "text-[#6B7280]"
-                )}
-              >
-                {hint}
-              </p>
-            )}
-            {trend && (
-              <p
-                className={cn(
-                  "text-xs font-semibold",
-                  trend.positive
-                    ? variant === "primary"
-                      ? "text-[#D4AF37]"
-                      : "text-[#92730E]"
-                    : "text-[#DC2626]"
-                )}
-              >
-                {trend.value}
-              </p>
-            )}
-          </div>
-          {Icon && (
-            <div
-              className={cn(
-                "h-8 w-8 rounded-md flex items-center justify-center",
-                variant === "primary"
-                  ? "bg-[#D4AF37]/15"
-                  : "bg-[#F9FAFB]"
-              )}
-            >
-              <Icon
-                className={cn(
-                  "h-4 w-4",
-                  variant === "primary" ? "text-[#D4AF37]" : "text-[#6B7280]"
-                )}
-              />
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
+export function KpiCard({ label, value, hint, icon: Icon, trend, variant = 'default' }: { label: string; value: string | number; hint?: string; icon?: ComponentType<{ className?: string }>; trend?: { value: string; positive?: boolean }; variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger'; className?: string }) {
+  const styles = useStyles();
+  const primary = variant === 'primary';
+  return <Card className={primary ? `${styles.card} ${styles.primary}` : styles.card}><div className={styles.row}><div><Text size={200} weight="semibold" className={primary ? `${styles.label} ${styles.primaryLabel}` : styles.label}>{label}</Text><Title2>{value}</Title2>{hint && <Text size={200} className={primary ? `${styles.hint} ${styles.primaryHint}` : styles.hint}>{hint}</Text>}{trend && <Text size={200} weight="semibold" style={{ color: trend.positive ? tokens.colorBrandForeground1 : tokens.colorPaletteRedForeground1 }}>{trend.value}</Text>}</div>{Icon && <div className={styles.icon}><Icon /></div>}</div></Card>;
 }

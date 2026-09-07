@@ -1,195 +1,67 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import {
-  LayoutDashboard,
-  Car,
-  Users,
-  BookOpen,
-  CreditCard,
-  FileText,
-  BarChart3,
-  Menu,
-  Settings,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-  Sheet,
-  SheetContent,
-} from "@/components/ui/sheet";
+import { useCallback, useState } from 'react';
+import { Button, Text, Title1, makeStyles, mergeClasses, tokens } from '@fluentui/react-components';
+import { Navigation24Regular, Settings24Regular, Board24Regular, VehicleBus24Regular, People24Regular, BookOpen24Regular, Payment24Regular, DocumentBulletList24Regular, DataBarVertical24Regular, Dismiss24Regular } from '@fluentui/react-icons';
+import { DashboardView } from '@/components/modules/DashboardView';
+import { VehiclesView } from '@/components/modules/VehiclesView';
+import { CustomersView } from '@/components/modules/CustomersView';
+import { LedgersView } from '@/components/modules/LedgersView';
+import { PaymentsView } from '@/components/modules/PaymentsView';
+import { InvoicesView } from '@/components/modules/InvoicesView';
+import { ReportsView } from '@/components/modules/ReportsView';
+import { SettingsView } from '@/components/modules/SettingsView';
 
-import { DashboardView } from "@/components/modules/DashboardView";
-import { VehiclesView } from "@/components/modules/VehiclesView";
-import { CustomersView } from "@/components/modules/CustomersView";
-import { LedgersView } from "@/components/modules/LedgersView";
-import { PaymentsView } from "@/components/modules/PaymentsView";
-import { InvoicesView } from "@/components/modules/InvoicesView";
-import { ReportsView } from "@/components/modules/ReportsView";
-import { SettingsView } from "@/components/modules/SettingsView";
+type View = 'dashboard' | 'vehicles' | 'customers' | 'ledgers' | 'payments' | 'invoices' | 'reports' | 'settings';
+const NAV = [
+  ['dashboard', 'Dashboard', Board24Regular, 'Overview and KPIs'],
+  ['vehicles', 'Vehicles', VehicleBus24Regular, 'Shipment tracking'],
+  ['customers', 'Customers', People24Regular, 'Client directory'],
+  ['ledgers', 'Ledgers', BookOpen24Regular, 'Dual-ledger accounting'],
+  ['payments', 'Payments', Payment24Regular, 'Payment recording'],
+  ['invoices', 'Invoices', DocumentBulletList24Regular, 'Billing and invoicing'],
+  ['reports', 'Reports', DataBarVertical24Regular, 'Analytics and exports'],
+  ['settings', 'Settings', Settings24Regular, 'Company defaults'],
+] as const;
 
-type View =
-  | "dashboard"
-  | "vehicles"
-  | "customers"
-  | "ledgers"
-  | "payments"
-  | "invoices"
-  | "reports"
-  | "settings";
+const useStyles = makeStyles({
+  root: { display: 'flex', minHeight: '100vh', backgroundColor: tokens.colorNeutralBackground3 },
+  sidebar: { width: '260px', flexShrink: 0, display: 'flex', flexDirection: 'column', backgroundColor: tokens.colorNeutralBackground1, borderRight: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke2}`, position: 'sticky', top: 0, height: '100vh', '@media (max-width: 900px)': { display: 'none' } },
+  brand: { padding: `${tokens.spacingVerticalXXL} ${tokens.spacingHorizontalL}`, borderBottom: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke2}` },
+  brandName: { display: 'block', fontWeight: tokens.fontWeightBold, letterSpacing: '0.16em' },
+  nav: { flex: 1, padding: tokens.spacingVerticalM, overflowY: 'auto' },
+  navLabel: { display: 'block', padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`, color: tokens.colorNeutralForeground3, fontSize: tokens.fontSizeBase200, textTransform: 'uppercase', letterSpacing: '0.12em' },
+  navButton: { width: '100%', justifyContent: 'flex-start', marginBottom: tokens.spacingVerticalXS, minHeight: '42px' },
+  footer: { padding: tokens.spacingVerticalL, borderTop: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke2}` },
+  main: { flex: 1, minWidth: 0, padding: tokens.spacingVerticalXXL, maxWidth: '1600px', width: '100%', margin: '0 auto', '@media (max-width: 900px)': { padding: tokens.spacingVerticalL } },
+  mobileBar: { display: 'none', '@media (max-width: 900px)': { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: tokens.spacingVerticalM, backgroundColor: tokens.colorNeutralBackground1, borderBottom: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke2}`, position: 'sticky', top: 0, zIndex: 10 } },
+  drawer: { display: 'none', '@media (max-width: 900px)': { display: 'block', position: 'fixed', inset: 0, zIndex: 20, backgroundColor: tokens.colorNeutralBackground1, width: '280px', boxShadow: tokens.shadow64 } },
+});
 
-const NAV: { id: View; label: string; icon: any; description: string }[] = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, description: "Overview & KPIs" },
-  { id: "vehicles", label: "Vehicles", icon: Car, description: "Shipment tracking" },
-  { id: "customers", label: "Customers", icon: Users, description: "Client directory" },
-  { id: "ledgers", label: "Ledgers", icon: BookOpen, description: "Dual-ledger accounting" },
-  { id: "payments", label: "Payments", icon: CreditCard, description: "Payment recording" },
-  { id: "invoices", label: "Invoices", icon: FileText, description: "Billing & invoicing" },
-  { id: "reports", label: "Reports", icon: BarChart3, description: "Analytics & exports" },
-  { id: "settings", label: "Settings", icon: Settings, description: "Company defaults" },
-];
-
-function SidebarContent({
-  view,
-  onNavigate,
-}: {
-  view: View;
-  onNavigate: (v: View) => void;
-}) {
-  return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Brand header — JACXI wordmark + SHIPPING sub-label
-          Matches brand book cover: Extra Bold Black wordmark, widely-tracked grey subtitle */}
-      <div className="px-5 pt-7 pb-6 border-b border-[#E3E3DF]">
-        <p className="mb-2 text-[9px] font-semibold uppercase tracking-wider-brand text-[#92730E]">
-          Vehicle logistics / finance
-        </p>
-        <h1 className="brand-wordmark text-3xl text-black leading-none">
-          JACXI
-        </h1>
-        <p className="mt-2 text-[10px] font-semibold text-[#6B7280] uppercase tracking-brand">
-          Shipping
-        </p>
-        {/* Subtle gold accent rule under the brand */}
-        <div className="mt-3 h-px w-8 bg-[#D4AF37]" />
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto thin-scroll">
-        <p className="px-3 pb-2 text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider-brand">
-          Workspace
-        </p>
-        {NAV.map((item) => {
-          const Icon = item.icon;
-          const active = view === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onNavigate(item.id)}
-              className={cn(
-                "relative w-full group flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all",
-                active
-                  ? "bg-black text-white"
-                  : "text-[#374151] hover:bg-[#F9FAFB] hover:text-black"
-              )}
-            >
-              {/* Gold left-edge indicator for active state */}
-              {active && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#D4AF37] rounded-r" />
-              )}
-              <Icon
-                className={cn(
-                  "h-4 w-4 shrink-0",
-                  active
-                    ? "text-[#D4AF37]"
-                    : "text-[#9CA3AF] group-hover:text-black"
-                )}
-              />
-              <span className="flex-1 text-left">{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* Brand footer — values: Transparency, Precision, Reliability */}
-      <div className="px-5 py-4 border-t border-[#E3E3DF]">
-        <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-brand mb-1.5">
-          Brand Values
-        </p>
-        <p className="text-xs text-[#374151] leading-relaxed">
-          Transparency<span className="text-[#D4AF37] mx-1.5">·</span>
-          Precision<span className="text-[#D4AF37] mx-1.5">·</span>
-          Reliability
-        </p>
-        <div className="mt-3 h-px brand-accent-line" />
-        <p className="mt-2 text-[10px] text-[#9CA3AF]">North America → Afghanistan</p>
-      </div>
-    </div>
-  );
+function Sidebar({ view, onNavigate, mobile, onClose }: { view: View; onNavigate: (v: View) => void; mobile?: boolean; onClose?: () => void }) {
+  const styles = useStyles();
+  return <aside className={mergeClasses(styles.sidebar, mobile && styles.drawer)}>
+    <div className={styles.brand}><Text className={styles.brandName}>JACXI</Text><Text size={200} style={{ color: tokens.colorBrandForeground1 }}>SHIPPING</Text>{mobile && <Button appearance="subtle" icon={<Dismiss24Regular />} aria-label="Close navigation" onClick={onClose} />}</div>
+    <nav className={styles.nav} aria-label="Workspace navigation"><Text className={styles.navLabel}>Workspace</Text>{NAV.map(([id, label, Icon, description]) => <Button key={id} className={styles.navButton} appearance={view === id ? 'primary' : 'subtle'} icon={<Icon />} onClick={() => onNavigate(id as View)} aria-label={description}>{label}</Button>)}</nav>
+    <div className={styles.footer}><Text size={200} weight="semibold">Brand values</Text><Text block size={200}>Transparency · Precision · Reliability</Text></div>
+  </aside>;
 }
 
 export default function Home() {
-  const [view, setView] = useState<View>("dashboard");
+  const styles = useStyles();
+  const [view, setView] = useState<View>('dashboard');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
-
-  const handleNavigate = (v: View) => {
-    setView(v);
-    setMobileOpen(false);
-    if (v === "dashboard") refresh();
-  };
-
-  return (
-    <div className="workspace-surface min-h-screen flex">
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-white border-r border-[#E3E3DF] sticky top-0 h-screen">
-        <SidebarContent view={view} onNavigate={handleNavigate} />
-      </aside>
-
-      {/* Mobile sidebar */}
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-64 p-0">
-          <SidebarContent view={view} onNavigate={handleNavigate} />
-        </SheetContent>
-      </Sheet>
-
-      {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar (mobile only) */}
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[#E3E3DF] lg:hidden">
-          <div className="flex items-center justify-between px-4 h-14">
-            <button
-              onClick={() => setMobileOpen(true)}
-              className="p-1.5 rounded-md hover:bg-[#F9FAFB]"
-              aria-label="Open menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            <div className="text-center">
-              <span className="brand-wordmark block text-sm text-black tracking-tight">JACXI</span>
-              <span className="block text-[8px] font-semibold uppercase tracking-brand text-[#92730E]">Shipping</span>
-            </div>
-            <div className="w-7" />
-          </div>
-        </header>
-
-        {/* Content */}
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-5 max-w-[1600px] w-full mx-auto">
-          <div key={`${view}-${refreshKey}`} className="animate-fade-in">
-            {view === "dashboard" && (
-              <DashboardView onNavigate={handleNavigate} />
-            )}
-            {view === "vehicles" && <VehiclesView />}
-            {view === "customers" && <CustomersView />}
-            {view === "ledgers" && <LedgersView />}
-            {view === "payments" && <PaymentsView />}
-            {view === "invoices" && <InvoicesView />}
-            {view === "reports" && <ReportsView />}
-            {view === "settings" && <SettingsView />}
-          </div>
-        </main>
-      </div>
+  const navigate = (next: View) => { setView(next); setMobileOpen(false); if (next === 'dashboard') refresh(); };
+  return <div className={styles.root}>
+    <Sidebar view={view} onNavigate={navigate} />
+    {mobileOpen && <Sidebar view={view} onNavigate={navigate} mobile onClose={() => setMobileOpen(false)} />}
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <header className={styles.mobileBar}><Button appearance="subtle" icon={<Navigation24Regular />} aria-label="Open navigation" onClick={() => setMobileOpen(true)} /><Title1 style={{ fontSize: tokens.fontSizeBase400 }}>JACXI</Title1><div style={{ width: 32 }} /></header>
+      <main className={styles.main}><div key={`${view}-${refreshKey}`} className="animate-fade-in">
+        {view === 'dashboard' && <DashboardView onNavigate={navigate} />}{view === 'vehicles' && <VehiclesView />}{view === 'customers' && <CustomersView />}{view === 'ledgers' && <LedgersView />}{view === 'payments' && <PaymentsView />}{view === 'invoices' && <InvoicesView />}{view === 'reports' && <ReportsView />}{view === 'settings' && <SettingsView />}
+      </div></main>
     </div>
-  );
+  </div>;
 }
