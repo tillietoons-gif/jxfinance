@@ -224,13 +224,13 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
   doc.rect(0, 0, pageWidth, 10, "F");
 
   // -------------------------------------------------------------------------
-  // 2. BRAND (left) — configured logo with a text fallback
+  // 2. BRAND (left) — use only the configured logo, without a text wordmark
   // -------------------------------------------------------------------------
   let y = 26;
   if (logoData) {
     try {
-      const maxLogoWidth = 52;
-      const maxLogoHeight = 24;
+      const maxLogoWidth = 72;
+      const maxLogoHeight = 30;
       const scale = Math.min(maxLogoWidth / logoData.width, maxLogoHeight / logoData.height);
       const logoWidth = logoData.width * scale;
       const logoHeight = logoData.height * scale;
@@ -238,26 +238,16 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
         logoData.data,
         logoData.format,
         marginX,
-        13 + (maxLogoHeight - logoHeight) / 2,
+        11 + (maxLogoHeight - logoHeight) / 2,
         logoWidth,
         logoHeight,
         undefined,
         "FAST"
       );
     } catch {
-      // Fall back to the text wordmark if the configured image format is unsupported.
+      // Ignore unsupported configured image formats and continue rendering the invoice.
     }
   }
-  const brandX = logoData ? marginX + 58 : marginX;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(34);
-  doc.setTextColor(...JACXI.black);
-  doc.text(JACXI.brand, brandX, y);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  doc.setTextColor(...JACXI.medGrey);
-  doc.text(JACXI.subbrand, brandX, y + 6);
 
   // -------------------------------------------------------------------------
   // 3. INVOICE LABEL (right) — gold, large, bold
