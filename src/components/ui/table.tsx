@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import { Table as FluentTable, TableHeader as FluentTableHeader, TableBody as FluentTableBody, TableRow as FluentTableRow, TableCell as FluentTableCell, TableHeaderCell } from "@fluentui/react-components";
-const cx = (extra?: string) => [extra].filter(Boolean).join(" ");
-export function Table({ className, ...props }: React.ComponentProps<typeof FluentTable>) { return <div style={{ overflowX: "auto" }}><FluentTable className={cx(className)} {...props} /></div>; }
+export function Table({ className, ...props }: React.ComponentProps<typeof FluentTable>) { return <div style={{ overflowX: "auto" }}><FluentTable className={className} {...props} /></div>; }
 export function TableHeader(props: React.ComponentProps<typeof FluentTableHeader>) { return <FluentTableHeader {...props} />; }
 export function TableBody(props: React.ComponentProps<typeof FluentTableBody>) { return <FluentTableBody {...props} />; }
 export function TableRow(props: React.ComponentProps<typeof FluentTableRow>) { return <FluentTableRow {...props} />; }

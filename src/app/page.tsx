@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Button, Text, Title1, makeStyles, mergeClasses, tokens } from '@fluentui/react-components';
+import { Button, Text, Title1, makeStyles, tokens } from '@fluentui/react-components';
 import { Navigation24Regular, Settings24Regular, Board24Regular, VehicleBus24Regular, People24Regular, BookOpen24Regular, Payment24Regular, DocumentBulletList24Regular, DataBarVertical24Regular, Dismiss24Regular } from '@fluentui/react-icons';
 import { DashboardView } from '@/components/modules/DashboardView';
 import { VehiclesView } from '@/components/modules/VehiclesView';
@@ -40,9 +40,9 @@ const useStyles = makeStyles({
 
 function Sidebar({ view, onNavigate, mobile, onClose }: { view: View; onNavigate: (v: View) => void; mobile?: boolean; onClose?: () => void }) {
   const styles = useStyles();
-  return <aside className={mergeClasses(styles.sidebar, mobile && styles.drawer)}>
-    <div className={styles.brand}><Text className={mergeClasses(...styles.brandName.split(" "))}>JACXI</Text><Text size={200} style={{ color: tokens.colorBrandForeground1 }}>SHIPPING</Text>{mobile && <Button appearance="subtle" icon={<Dismiss24Regular />} aria-label="Close navigation" onClick={onClose} />}</div>
-    <nav className={styles.nav} aria-label="Workspace navigation"><Text className={styles.navLabel}>Workspace</Text>{NAV.map(([id, label, Icon, description]) => <Button key={id} className={mergeClasses(...styles.navButton.split(" "))} appearance={view === id ? 'primary' : 'subtle'} icon={<Icon />} onClick={() => onNavigate(id as View)} aria-label={description}>{label}</Button>)}</nav>
+  return <aside className={mobile ? `${styles.sidebar} ${styles.drawer}` : styles.sidebar}>
+    <div className={styles.brand}><Text className={styles.brandName}>JACXI</Text><Text size={200} style={{ color: tokens.colorBrandForeground1 }}>SHIPPING</Text>{mobile && <Button appearance="subtle" icon={<Dismiss24Regular />} aria-label="Close navigation" onClick={onClose} />}</div>
+    <nav className={styles.nav} aria-label="Workspace navigation"><Text className={styles.navLabel}>Workspace</Text>{NAV.map(([id, label, Icon, description]) => <Button key={id} className={styles.navButton} appearance={view === id ? 'primary' : 'subtle'} icon={<Icon />} onClick={() => onNavigate(id as View)} aria-label={description}>{label}</Button>)}</nav>
     <div className={styles.footer}><Text size={200} weight="semibold">Brand values</Text><Text block size={200}>Transparency · Precision · Reliability</Text></div>
   </aside>;
 }
@@ -58,7 +58,7 @@ export default function Home() {
     <Sidebar view={view} onNavigate={navigate} />
     {mobileOpen && <Sidebar view={view} onNavigate={navigate} mobile onClose={() => setMobileOpen(false)} />}
     <div style={{ flex: 1, minWidth: 0 }}>
-      <header className={mergeClasses(...styles.mobileBar.split(" "))}><Button appearance="subtle" icon={<Navigation24Regular />} aria-label="Open navigation" onClick={() => setMobileOpen(true)} /><Title1 style={{ fontSize: tokens.fontSizeBase400 }}>JACXI</Title1><div style={{ width: 32 }} /></header>
+      <header className={styles.mobileBar}><Button appearance="subtle" icon={<Navigation24Regular />} aria-label="Open navigation" onClick={() => setMobileOpen(true)} /><Title1 style={{ fontSize: tokens.fontSizeBase400 }}>JACXI</Title1><div style={{ width: 32 }} /></header>
       <main className={styles.main}><div key={`${view}-${refreshKey}`} className="animate-fade-in">
         {view === 'dashboard' && <DashboardView onNavigate={navigate} />}{view === 'vehicles' && <VehiclesView />}{view === 'customers' && <CustomersView />}{view === 'ledgers' && <LedgersView />}{view === 'payments' && <PaymentsView />}{view === 'invoices' && <InvoicesView />}{view === 'reports' && <ReportsView />}{view === 'settings' && <SettingsView />}
       </div></main>
