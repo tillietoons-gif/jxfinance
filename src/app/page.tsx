@@ -35,7 +35,8 @@ const useStyles = makeStyles({
   footer: { padding: tokens.spacingVerticalL, borderTop: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke2}` },
   main: { flex: 1, minWidth: 0, padding: tokens.spacingVerticalXXL, maxWidth: '1600px', width: '100%', margin: '0 auto', '@media (max-width: 900px)': { padding: tokens.spacingVerticalL } },
   mobileBar: { display: 'none', '@media (max-width: 900px)': { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: tokens.spacingVerticalM, backgroundColor: tokens.colorNeutralBackground1, borderBottom: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke2}`, position: 'sticky', top: 0, zIndex: 10 } },
-  drawer: { display: 'none', '@media (max-width: 900px)': { display: 'block', position: 'fixed', inset: 0, zIndex: 20, backgroundColor: tokens.colorNeutralBackground1, width: '280px', boxShadow: tokens.shadow64 } },
+  drawerBackdrop: { display: 'none', '@media (max-width: 900px)': { display: 'block', position: 'fixed', inset: 0, zIndex: 19, backgroundColor: tokens.colorNeutralBackgroundAlpha, backdropFilter: 'blur(2px)' } },
+  drawer: { display: 'none', '@media (max-width: 900px)': { display: 'flex', position: 'fixed', inset: 0, zIndex: 20, backgroundColor: tokens.colorNeutralBackground1, width: 'min(82vw, 300px)', boxShadow: tokens.shadow64 } },
 });
 
 function Sidebar({ view, onNavigate, mobile, onClose }: { view: View; onNavigate: (v: View) => void; mobile?: boolean; onClose?: () => void }) {
@@ -56,7 +57,7 @@ export default function Home() {
   const navigate = (next: View) => { setView(next); setMobileOpen(false); if (next === 'dashboard') refresh(); };
   return <div className={styles.root}>
     <Sidebar view={view} onNavigate={navigate} />
-    {mobileOpen && <Sidebar view={view} onNavigate={navigate} mobile onClose={() => setMobileOpen(false)} />}
+    {mobileOpen && <><button type="button" className={styles.drawerBackdrop} aria-label="Close navigation" onClick={() => setMobileOpen(false)} /><Sidebar view={view} onNavigate={navigate} mobile onClose={() => setMobileOpen(false)} /></>}
     <div style={{ flex: 1, minWidth: 0 }}>
       <header className={styles.mobileBar}><Button appearance="subtle" icon={<Navigation24Regular />} aria-label="Open navigation" onClick={() => setMobileOpen(true)} /><Title1 style={{ fontSize: tokens.fontSizeBase400 }}>JACXI</Title1><div style={{ width: 32 }} /></header>
       <main className={styles.main}><div key={`${view}-${refreshKey}`} className="animate-fade-in">
