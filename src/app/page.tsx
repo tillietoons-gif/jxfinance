@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import type { ComponentType } from 'react';
-import { Button, Text, Title1, makeStyles, tokens } from '@fluentui/react-components';
+import { Button, Text, Title1, makeStyles, mergeClasses, tokens } from '@fluentui/react-components';
 import { Navigation24Regular, Settings24Regular, Board24Regular, VehicleBus24Regular, People24Regular, BookOpen24Regular, Payment24Regular, DocumentBulletList24Regular, DataBarVertical24Regular, Dismiss24Regular } from '@fluentui/react-icons';
 import { DashboardView } from '@/components/modules/DashboardView';
 import { VehiclesView } from '@/components/modules/VehiclesView';
@@ -39,7 +39,7 @@ const useStyles = makeStyles({
 
 function Sidebar({ view, onNavigate, mobile, onClose }: { view: View; onNavigate: (v: View) => void; mobile?: boolean; onClose?: () => void }) {
   const styles = useStyles();
-  return <aside className={mobile ? `${styles.sidebar} ${styles.drawer}` : styles.sidebar}>
+  return <aside className={mobile ? mergeClasses(styles.sidebar, styles.drawer) : styles.sidebar}>
     <div className={styles.brand}><Text className={styles.brandName}>JACXI</Text><Text size={200} style={{ color: tokens.colorBrandForeground1 }}>SHIPPING</Text>{mobile && <Button appearance="subtle" icon={<Dismiss24Regular />} aria-label="Close navigation" onClick={onClose} />}</div>
     <nav className={styles.nav} aria-label="Workspace navigation">
       {NAV_GROUPS.map((group) => (

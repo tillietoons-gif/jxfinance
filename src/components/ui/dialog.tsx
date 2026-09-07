@@ -11,6 +11,7 @@ import {
   DialogTitle as FluentDialogTitle,
   DialogTrigger as FluentDialogTrigger,
   makeStyles,
+  mergeClasses,
   tokens,
 } from "@fluentui/react-components";
 
@@ -51,7 +52,7 @@ export function DialogTrigger({ children }: { children: React.ReactNode }) {
 export function DialogContent({ children, className, showCloseButton: _showCloseButton, ...props }: any) {
   const styles = useStyles();
   return (
-    <DialogSurface className={`${styles.surface}${className ? ` ${className}` : ""}`} {...props}>
+    <DialogSurface className={mergeClasses(styles.surface, className)} {...props}>
       <FluentDialogContent>{children}</FluentDialogContent>
     </DialogSurface>
   );
@@ -59,7 +60,7 @@ export function DialogContent({ children, className, showCloseButton: _showClose
 
 export function DialogHeader({ children, className }: { children: React.ReactNode; className?: string }) {
   const styles = useStyles();
-  return <div className={`${styles.header}${className ? ` ${className}` : ""}`}>{children}</div>;
+  return <div className={mergeClasses(styles.header, className)}>{children}</div>;
 }
 
 export function DialogTitle({ children, ...props }: any) {
@@ -68,12 +69,12 @@ export function DialogTitle({ children, ...props }: any) {
 
 export function DialogFooter({ children, className, ...props }: any) {
   const styles = useStyles();
-  return <DialogActions className={`${styles.actions}${className ? ` ${className}` : ""}`} {...props}>{children}</DialogActions>;
+  return <DialogActions className={mergeClasses(styles.actions, className)} {...props}>{children}</DialogActions>;
 }
 
 export function DialogDescription({ children, className, ...props }: any) {
   const styles = useStyles();
-  return <p className={`${styles.description}${className ? ` ${className}` : ""}`} {...props}>{children}</p>;
+  return <p className={mergeClasses(styles.description, className)} {...props}>{children}</p>;
 }
 
 export function DialogClose({ children = "Close" }: { children?: React.ReactNode }) {

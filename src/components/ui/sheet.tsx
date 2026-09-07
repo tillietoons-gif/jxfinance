@@ -10,6 +10,7 @@ import {
   DrawerHeaderTitle,
   DrawerProps,
   makeStyles,
+  mergeClasses,
   tokens,
 } from "@fluentui/react-components";
 
@@ -30,13 +31,13 @@ export function SheetTrigger({ children }: { children: React.ReactNode }) {
 
 export function SheetContent({ children, className, side: _side, style, ...props }: any) {
   const styles = useStyles();
-  return <DrawerBody className={`${styles.body}${className ? ` ${className}` : ""}`} style={{ width: "100%", minWidth: 0, boxSizing: "border-box", ...style }} {...props}>{children}</DrawerBody>;
+  return <DrawerBody className={mergeClasses(styles.body, className)} style={{ width: "100%", minWidth: 0, boxSizing: "border-box", ...style }} {...props}>{children}</DrawerBody>;
 }
 
 export function SheetHeader({ children, className, ...props }: any) { return <DrawerHeader className={className} {...props}>{children}</DrawerHeader>; }
 export function SheetTitle({ children, ...props }: any) { return <DrawerHeaderTitle {...props}>{children}</DrawerHeaderTitle>; }
-export function SheetFooter({ children, className, ...props }: any) { const styles = useStyles(); return <DrawerFooter className={`${styles.footer}${className ? ` ${className}` : ""}`} {...props}>{children}</DrawerFooter>; }
-export function SheetDescription({ children, className, ...props }: any) { const styles = useStyles(); return <p className={`${styles.description}${className ? ` ${className}` : ""}`} {...props}>{children}</p>; }
+export function SheetFooter({ children, className, ...props }: any) { const styles = useStyles(); return <DrawerFooter className={mergeClasses(styles.footer, className)} {...props}>{children}</DrawerFooter>; }
+export function SheetDescription({ children, className, ...props }: any) { const styles = useStyles(); return <p className={mergeClasses(styles.description, className)} {...props}>{children}</p>; }
 export function SheetClose({ children = "Close" }: { children?: React.ReactNode }) { return <Button appearance="secondary">{children}</Button>; }
 export function SheetPortal({ children }: { children: React.ReactNode }) { return <>{children}</>; }
 export function SheetOverlay() { return null; }
