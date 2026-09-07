@@ -507,11 +507,11 @@ export function VehiclesView() {
 
               {/* Tabs */}
               <Tabs defaultValue="expenses">
-                <TabsList className="grid grid-cols-4 w-full">
+                <TabsList className="grid grid-cols-5 w-full">
                   <TabsTrigger value="expenses">Expenses</TabsTrigger>
+                  <TabsTrigger value="billing">Billing</TabsTrigger>
                   <TabsTrigger value="payments">Payments</TabsTrigger>
                   <TabsTrigger value="invoices">Invoices</TabsTrigger>
-                  <TabsTrigger value="profit">Profit</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="expenses" className="mt-3">
@@ -519,6 +519,10 @@ export function VehiclesView() {
                     vehicle={detailData}
                     onChanged={refreshDetail}
                   />
+                </TabsContent>
+
+                <TabsContent value="billing" className="mt-3">
+                  <VehicleBillingTab vehicle={detailData} onChanged={refreshDetail} />
                 </TabsContent>
 
                 <TabsContent value="payments" className="mt-3">
@@ -795,6 +799,90 @@ function VehicleFormDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function VehicleBillingTab({
+  vehicle,
+  onChanged,
+}: {
+  vehicle: any;
+  onChanged: () => void;
+}) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const invoices = vehicle.invoices || [];
+  const expenses = vehicle.expenses || [];
+
+  const updateBilling = async (expenseId: string, invoiceId: string) => {
+    setBusyId(expenseId);
+    try {
+      const response = await fetch(`/api/expenses/${expenseId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoiceId: invoiceId || null }),
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => null);
+        throw new Error(error?.error || "Failed to update billing");
+      }
+      toast.success(invoiceId ? "Expense added to invoice" : "Expense disputed and removed from invoice");
+      onChanged();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update billing");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-lg border border-[#D4AF37]/30 bg-[#D4AF37]/10 p-3">
+        <p className="text-sm font-semibold">Vehicle billing</p>
+        <p className="mt-1 text-xs text-[#6B7280]">
+          Add customer-charge expenses to an invoice or dispute them to remove the billing assignment.
+        </p>
+      </div>
+      {expenses.length === 0 ? (
+        <div className="rounded-lg border border-dashed p-6 text-center text-sm text-[#6B7280]">
+          No expenses recorded for this vehicle.
+        </div>
+      ) : (
+        <div className="rounded-md border border-[#E5E7EB] divide-y divide-[#F3F4F6]">
+          {expenses.map((expense: any) => (
+            <div key={expense.id} className="space-y-2 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">{expense.title}</p>
+                  <p className="text-xs text-[#6B7280]">
+                    {expense.category || "Uncategorized"} • {formatDate(expense.createdAt)}
+                  </p>
+                </div>
+                <p className="font-mono text-sm font-semibold text-[#92730E]">
+                  {formatCurrency(expense.customerCharge)}
+                </p>
+              </div>
+              <Select
+                value={expense.invoiceId || "unbilled"}
+                onValueChange={(value) => updateBilling(expense.id, value === "unbilled" ? "" : value)}
+                disabled={busyId === expense.id}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select invoice" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unbilled">Unbilled / disputed</SelectItem>
+                  {invoices.map((invoice: any) => (
+                    <SelectItem key={invoice.id} value={invoice.id}>
+                      {invoice.invoiceNumber} • {invoice.status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { z } from "zod";
 
 export async function PUT(
   req: NextRequest,
@@ -52,7 +53,7 @@ export async function PUT(
             db.ledgerTransaction.delete({ where: { id: tx.id } }),
             db.ledger.update({
               where: { id: companyLedger.id },
-              data: { balance: companyLedger.balance - existing.companyCost },
+              data: { balance: companyLedger.balance + existing.companyCost },
             }),
           ]);
         }
@@ -104,14 +105,14 @@ export async function PUT(
             data: {
               ledgerId: companyLedger.id,
               amount: companyCost,
-              type: "DEBIT",
+              type: "CREDIT",
               description: `Cost: ${updated.title} (Vehicle ${updated.vehicle.vin})`,
               referenceId: updated.id,
             },
           }),
           db.ledger.update({
             where: { id: companyLedger.id },
-            data: { balance: companyLedger.balance + companyCost },
+            data: { balance: companyLedger.balance - companyCost },
           }),
         ]);
       }
@@ -120,6 +121,59 @@ export async function PUT(
     return NextResponse.json(updated);
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
+  }
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  try {
+    const body = await req.json();
+    const parsed = z.object({ invoiceId: z.string().min(1).nullable() }).safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid billing assignment" }, { status: 400 });
+    }
+    const existing = await db.expense.findUnique({ where: { id }, include: { vehicle: true } });
+    if (!existing) return NextResponse.json({ error: "Expense not found" }, { status: 404 });
+    if (parsed.data.invoiceId) {
+      const invoice = await db.invoice.findUnique({ where: { id: parsed.data.invoiceId } });
+      if (!invoice) return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+      if (invoice.customerId !== existing.vehicle.customerId) {
+        return NextResponse.json({ error: "Expense and invoice belong to different customers" }, { status: 400 });
+      }
+    }
+    const updated = await db.expense.update({
+      where: { id },
+      data: { invoiceId: parsed.data.invoiceId },
+      include: { invoice: true },
+    });
+    const affectedInvoiceIds = [existing.invoiceId, parsed.data.invoiceId].filter(
+      (invoiceId): invoiceId is string => Boolean(invoiceId)
+    );
+    for (const invoiceId of [...new Set(affectedInvoiceIds)]) {
+      const invoice = await db.invoice.findUnique({
+        where: { id: invoiceId },
+        include: { items: true, expenses: true },
+      });
+      if (!invoice) continue;
+      const itemSubtotal = invoice.items.reduce((sum, item) => sum + item.total, 0);
+      const expenseSubtotal = invoice.expenses.reduce(
+        (sum, expense) => sum + expense.customerCharge,
+        0
+      );
+      await db.invoice.update({
+        where: { id: invoiceId },
+        data: {
+          subtotal: itemSubtotal + expenseSubtotal,
+          total: itemSubtotal + expenseSubtotal + invoice.tax,
+        },
+      });
+    }
+    return NextResponse.json(updated);
+  } catch (e) {
+    return NextResponse.json({ error: "Failed to update billing assignment" }, { status: 500 });
   }
 }
 
@@ -169,7 +223,7 @@ export async function DELETE(
             db.ledgerTransaction.delete({ where: { id: tx.id } }),
             db.ledger.update({
               where: { id: companyLedger.id },
-              data: { balance: companyLedger.balance - existing.companyCost },
+              data: { balance: companyLedger.balance + existing.companyCost },
             }),
           ]);
         }

@@ -53,7 +53,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   formatCurrency,
@@ -507,6 +506,7 @@ export function InvoicesView() {
                     customer: detailData.customer,
                     vehicle: detailData.vehicle,
                     items: detailData.items,
+                    logoUrl: "/api/settings/logo",
                   })
                 }
               >
@@ -584,8 +584,6 @@ function InvoiceFormDialog({
     tax: 0,
     items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
   });
-  const [availableExpenses, setAvailableExpenses] = useState<any[]>([]);
-  const [expenseIds, setExpenseIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -605,7 +603,6 @@ function InvoiceFormDialog({
           total: it.total,
         })),
       });
-      setExpenseIds([]);
     } else {
       setForm({
         invoiceNumber: generateInvoiceNumber(),
@@ -619,29 +616,8 @@ function InvoiceFormDialog({
         tax: 0,
         items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
       });
-      setExpenseIds([]);
     }
   }, [editing, customers, open]);
-
-  useEffect(() => {
-    if (!form.customerId || !open) {
-      setAvailableExpenses([]);
-      return;
-    }
-    fetch(`/api/expenses?customerId=${encodeURIComponent(form.customerId)}`)
-      .then((res) => (res.ok ? res.json() : []))
-      .then((expenses) => {
-        setAvailableExpenses(expenses);
-        if (editing) {
-          setExpenseIds(
-            expenses
-              .filter((expense: any) => expense.invoiceId === editing.id)
-              .map((expense: any) => expense.id)
-          );
-        }
-      })
-      .catch(() => setAvailableExpenses([]));
-  }, [form.customerId, editing, open]);
 
   const customerVehicles = vehicles.filter(
     (v) => v.customerId === form.customerId
@@ -651,10 +627,7 @@ function InvoiceFormDialog({
     (s, it) => s + (Number(it.unitPrice) || 0) * (Number(it.quantity) || 0),
     0
   );
-  const expenseSubtotal = availableExpenses
-    .filter((expense) => expenseIds.includes(expense.id))
-    .reduce((sum, expense) => sum + Number(expense.customerCharge || 0), 0);
-  const total = subtotal + expenseSubtotal + Number(form.tax || 0);
+  const total = subtotal + Number(form.tax || 0);
 
   const updateItem = (i: number, field: string, value: any) => {
     const next = [...form.items];
@@ -690,7 +663,7 @@ function InvoiceFormDialog({
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, expenseIds }),
+        body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error("Failed");
       toast.success(editing ? "Invoice updated" : "Invoice created");
@@ -709,12 +682,7 @@ function InvoiceFormDialog({
             {editing ? "Edit Invoice" : "New Invoice"}
           </DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue="general" className="py-2">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="general">Invoice details</TabsTrigger>
-            <TabsTrigger value="billing">Billing</TabsTrigger>
-          </TabsList>
-          <TabsContent value="general" className="space-y-3 pt-3">
+        <div className="space-y-3 py-2">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Invoice #</Label>
@@ -877,12 +845,6 @@ function InvoiceFormDialog({
               <span>Subtotal</span>
               <span className="font-mono">{formatCurrency(subtotal)}</span>
             </div>
-            {expenseSubtotal > 0 && (
-              <div className="flex justify-between text-[#4B5563]">
-                <span>Billed expenses</span>
-                <span className="font-mono">{formatCurrency(expenseSubtotal)}</span>
-              </div>
-            )}
             <div className="flex justify-between text-[#4B5563] items-center">
               <span>Tax</span>
               <Input
@@ -899,58 +861,7 @@ function InvoiceFormDialog({
               <span className="font-mono">{formatCurrency(total)}</span>
             </div>
           </div>
-          </TabsContent>
-          <TabsContent value="billing" className="space-y-4 pt-3">
-            <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-3">
-              <p className="text-sm font-semibold">Expense billing</p>
-              <p className="mt-1 text-xs text-[#6B7280]">
-                Select expenses to charge on this invoice. Remove a selected expense to dispute or leave it off the invoice.
-              </p>
-            </div>
-            {availableExpenses.length === 0 ? (
-              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-[#6B7280]">
-                No expenses found for this customer.
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {availableExpenses.map((expense) => {
-                  const selected = expenseIds.includes(expense.id);
-                  return (
-                    <div key={expense.id} className={`rounded-lg border p-3 ${selected ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-[#E5E7EB]"}`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium">{expense.title}</p>
-                          <p className="mt-0.5 text-xs text-[#6B7280]">
-                            {expense.vehicle?.vin || "Vehicle"}{expense.category ? ` • ${expense.category}` : ""}
-                          </p>
-                          {expense.invoiceId && expense.invoiceId !== editing?.id && (
-                            <p className="mt-1 text-xs text-amber-700">Already billed on another invoice</p>
-                          )}
-                        </div>
-                        <div className="shrink-0 text-right">
-                          <p className="font-mono text-sm font-semibold">{formatCurrency(expense.customerCharge)}</p>
-                          <Button
-                            size="sm"
-                            variant={selected ? "destructive" : "outline"}
-                            className="mt-2 h-7"
-                            disabled={Boolean(expense.invoiceId && expense.invoiceId !== editing?.id)}
-                            onClick={() => setExpenseIds((current) => selected ? current.filter((id) => id !== expense.id) : [...current, expense.id])}
-                          >
-                            {selected ? "Remove / dispute" : "Add to invoice"}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            <div className="flex justify-between border-t border-[#E5E7EB] pt-3 text-sm font-semibold">
-              <span>Selected expenses</span>
-              <span>{expenseIds.length}</span>
-            </div>
-          </TabsContent>
-        </Tabs>
+        </div>
         <DialogFooter>
           <Button
             variant="outline"

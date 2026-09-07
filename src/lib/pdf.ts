@@ -138,9 +138,54 @@ export interface InvoicePdfData {
   vehicle?: any;
   items: any[];
   expenses?: any[];
+  logoUrl?: string;
 }
 
-export function generateInvoicePdf(data: InvoicePdfData) {
+async function loadImageData(url: string): Promise<{ data: string; format: "PNG" | "JPEG" } | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    if (blob.type === "image/svg+xml") {
+      const objectUrl = URL.createObjectURL(blob);
+      try {
+        const image = await new Promise<HTMLImageElement | null>((resolve) => {
+          const element = new Image();
+          element.onload = () => resolve(element);
+          element.onerror = () => resolve(null);
+          element.src = objectUrl;
+        });
+        if (!image) return null;
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth || 400;
+        canvas.height = image.naturalHeight || 200;
+        canvas.getContext("2d")?.drawImage(image, 0, 0);
+        return { data: canvas.toDataURL("image/png"), format: "PNG" };
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+      }
+    }
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result !== "string") {
+          resolve(null);
+          return;
+        }
+        resolve({
+          data: reader.result,
+          format: blob.type === "image/jpeg" || blob.type === "image/jpg" ? "JPEG" : "PNG",
+        });
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function generateInvoicePdf(data: InvoicePdfData) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth(); // 210
   const pageHeight = doc.internal.pageSize.getHeight(); // 297
@@ -148,6 +193,7 @@ export function generateInvoicePdf(data: InvoicePdfData) {
   const contentWidth = pageWidth - marginX * 2; // 182
 
   const { invoice, customer, vehicle, items } = data;
+  const logoData = data.logoUrl ? await loadImageData(data.logoUrl) : null;
 
   // -------------------------------------------------------------------------
   // 1. TOP GOLD BAR (full width, ~10mm tall)
@@ -156,18 +202,26 @@ export function generateInvoicePdf(data: InvoicePdfData) {
   doc.rect(0, 0, pageWidth, 10, "F");
 
   // -------------------------------------------------------------------------
-  // 2. BRAND (left) — "JACXI" big bold black + "SHIPPING" sub-label grey
+  // 2. BRAND (left) — configured logo with a text fallback
   // -------------------------------------------------------------------------
   let y = 26;
+  if (logoData) {
+    try {
+      doc.addImage(logoData.data, logoData.format, marginX, 13, 32, 18, undefined, "FAST");
+    } catch {
+      // Fall back to the text wordmark if the configured image format is unsupported.
+    }
+  }
+  const brandX = logoData ? marginX + 37 : marginX;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(34);
   doc.setTextColor(...JACXI.black);
-  doc.text(JACXI.brand, marginX, y);
+  doc.text(JACXI.brand, brandX, y);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
   doc.setTextColor(...JACXI.medGrey);
-  doc.text(JACXI.subbrand, marginX, y + 6);
+  doc.text(JACXI.subbrand, brandX, y + 6);
 
   // -------------------------------------------------------------------------
   // 3. INVOICE LABEL (right) — gold, large, bold

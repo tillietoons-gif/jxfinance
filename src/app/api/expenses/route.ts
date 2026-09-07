@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Add a credit entry to the company ledger (company spent)
+    // Credit the company ledger for the company cost.
     if (companyCost > 0) {
       let companyLedger = await db.ledger.findFirst({
         where: { type: "COMPANY" },
@@ -88,14 +88,14 @@ export async function POST(req: NextRequest) {
           data: {
             ledgerId: companyLedger.id,
             amount: companyCost,
-            type: "DEBIT",
+              type: "CREDIT",
             description: `Cost: ${expense.title} (Vehicle ${expense.vehicle.vin})`,
             referenceId: expense.id,
           },
         }),
         db.ledger.update({
           where: { id: companyLedger.id },
-          data: { balance: companyLedger.balance + companyCost },
+          data: { balance: companyLedger.balance - companyCost },
         }),
       ]);
     }
