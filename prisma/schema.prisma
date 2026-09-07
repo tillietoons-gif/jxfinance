@@ -1,12 +1,12 @@
 // Vehicle Logistics & Financial Management System
-// Solo Operator Edition - SQLite Schema
+// Solo Operator Edition - PostgreSQL Schema
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
