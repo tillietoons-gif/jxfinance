@@ -20,9 +20,14 @@ const useStyles = makeStyles({
     maxHeight: "calc(100vh - 2rem)",
     overflowY: "auto",
     padding: tokens.spacingVerticalXXL,
+    '@media (max-width: 520px)': {
+      width: 'calc(100vw - 2rem)',
+      padding: tokens.spacingVerticalL,
+    },
   },
   header: { display: "flex", flexDirection: "column", gap: tokens.spacingVerticalXS },
   description: { color: tokens.colorNeutralForeground2, lineHeight: tokens.lineHeightBase300 },
+  actions: { display: 'flex', flexWrap: 'wrap', gap: tokens.spacingHorizontalS, justifyContent: 'flex-end', '@media (max-width: 520px)': { flexDirection: 'column-reverse', alignItems: 'stretch' } },
 });
 
 type DialogProps = {
@@ -61,8 +66,9 @@ export function DialogTitle({ children, ...props }: any) {
   return <FluentDialogTitle {...props}>{children}</FluentDialogTitle>;
 }
 
-export function DialogFooter({ children, ...props }: any) {
-  return <DialogActions {...props}>{children}</DialogActions>;
+export function DialogFooter({ children, className, ...props }: any) {
+  const styles = useStyles();
+  return <DialogActions className={`${styles.actions}${className ? ` ${className}` : ""}`} {...props}>{children}</DialogActions>;
 }
 
 export function DialogDescription({ children, className, ...props }: any) {
