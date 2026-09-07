@@ -1,14 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { Button as FluentButton, type ButtonProps } from "@fluentui/react-components";
+import { Button as FluentButton, mergeClasses } from "@fluentui/react-components";
 
 const variantMap = { default: "primary", destructive: "primary", outline: "secondary", secondary: "secondary", ghost: "subtle", link: "subtle" } as const;
+const normalizeClassName = (value?: string) => value ? mergeClasses(...value.split(/\\s+/).filter(Boolean)) : undefined;
 
 type Props = any;
 
 export function Button({ variant = "default", size = "default", className, asChild: _asChild, ...props }: Props) {
-  return <FluentButton appearance={variantMap[variant as keyof typeof variantMap] || "primary"} size={size === "default" ? "medium" : size === "icon" ? "small" : size} className={className} {...props} />;
+  return <FluentButton appearance={variantMap[variant as keyof typeof variantMap] || "primary"} size={size === "default" ? "medium" : size === "icon" ? "small" : size} className={normalizeClassName(className)} {...props} />;
 }
 
 export const buttonVariants = (..._args: any[]) => "";
