@@ -24,7 +24,7 @@ export function useThemeMode() {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [renderer] = React.useState(() => createDOMRenderer(undefined, { insertionPoint: '__fluent-root' }))
+  const [renderer] = React.useState(() => createDOMRenderer())
   const didRenderRef = React.useRef(false)
   const [mode, setMode] = React.useState<ThemeMode>('light')
 
