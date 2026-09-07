@@ -569,6 +569,7 @@ function VehicleFormDialog({
     customerId: "",
   });
   const [saving, setSaving] = useState(false);
+  const [decoding, setDecoding] = useState(false);
 
   useEffect(() => {
     if (editing) {
@@ -595,6 +596,47 @@ function VehicleFormDialog({
       });
     }
   }, [editing, customers, open]);
+
+  const decodeVin = async () => {
+    const vin = form.vin.trim().toUpperCase();
+    if (vin.length !== 17) {
+      toast.error("Enter a valid 17-character VIN");
+      return;
+    }
+
+    setDecoding(true);
+    try {
+      const res = await fetch(
+        `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${encodeURIComponent(vin)}?format=json`
+      );
+      if (!res.ok) throw new Error("VIN decode request failed");
+
+      const data = await res.json();
+      const result = data?.Results?.[0];
+      if (!result) throw new Error("No vehicle data found for this VIN");
+
+      const make = result.Make?.trim();
+      const model = result.Model?.trim();
+      const year = Number(result.ModelYear);
+      const hasYear = Number.isInteger(year) && year > 0;
+      if (!make && !model && !hasYear) {
+        throw new Error("No vehicle data found for this VIN");
+      }
+
+      setForm((current) => ({
+        ...current,
+        vin,
+        ...(make ? { make } : {}),
+        ...(model ? { model } : {}),
+        ...(hasYear ? { year } : {}),
+      }));
+      toast.success("Vehicle details decoded");
+    } catch (e: any) {
+      toast.error(e?.message || "Unable to decode VIN");
+    } finally {
+      setDecoding(false);
+    }
+  };
 
   const submit = async () => {
     if (!form.vin || !form.make || !form.model || !form.customerId) {
@@ -634,12 +676,23 @@ function VehicleFormDialog({
         <div className="grid grid-cols-2 gap-3 py-2">
           <div className="col-span-2">
             <Label className="text-xs">VIN *</Label>
-            <Input
-              value={form.vin}
-              onChange={(e) => setForm({ ...form, vin: e.target.value })}
-              placeholder="1HGCM82633A001234"
-              className="mt-1 font-mono"
-            />
+            <div className="mt-1 flex gap-2">
+              <Input
+                value={form.vin}
+                onChange={(e) => setForm({ ...form, vin: e.target.value })}
+                placeholder="1HGCM82633A001234"
+                className="font-mono"
+                maxLength={17}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={decodeVin}
+                disabled={decoding || saving}
+              >
+                {decoding ? "Decoding…" : "Decode"}
+              </Button>
+            </div>
           </div>
           <div>
             <Label className="text-xs">Make *</Label>

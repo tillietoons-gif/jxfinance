@@ -19,6 +19,7 @@ import {
   Car,
   FileText,
   CreditCard,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,13 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { formatDate, formatCurrency } from "@/lib/types";
 import { exportToExcel } from "@/lib/excel";
@@ -61,6 +69,9 @@ export function CustomersView() {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
+  const [detailCustomer, setDetailCustomer] = useState<Customer | null>(null);
+  const [detailData, setDetailData] = useState<any>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -80,6 +91,21 @@ export function CustomersView() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const openDetail = async (customer: Customer) => {
+    setDetailCustomer(customer);
+    setDetailLoading(true);
+    try {
+      const res = await fetch(`/api/customers/${customer.id}`);
+      if (!res.ok) throw new Error("Failed to load customer details");
+      setDetailData(await res.json());
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to load customer details");
+      setDetailCustomer(null);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const filtered = customers.filter((c) => {
     const s = search.toLowerCase();
@@ -190,7 +216,13 @@ export function CustomersView() {
           {filtered.map((c) => (
             <div
               key={c.id}
-              className="rounded-xl border border-[#E5E7EB] bg-white p-4 hover:shadow-sm transition-shadow"
+              className="rounded-xl border border-[#E5E7EB] bg-white p-4 hover:shadow-sm transition-shadow cursor-pointer"
+              role="button"
+              tabIndex={0}
+              onClick={() => openDetail(c)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") openDetail(c);
+              }}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3 min-w-0">
@@ -211,7 +243,8 @@ export function CustomersView() {
                     size="sm"
                     variant="ghost"
                     className="h-7 w-7 p-0"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setEditing(c);
                       setDialogOpen(true);
                     }}
@@ -222,7 +255,8 @@ export function CustomersView() {
                     size="sm"
                     variant="ghost"
                     className="h-7 w-7 p-0 text-[#DC2626]"
-                    onClick={async () => {
+                    onClick={async (e) => {
+                      e.stopPropagation();
                       if (!confirm(`Delete ${c.name}?`)) return;
                       await fetch(`/api/customers/${c.id}`, {
                         method: "DELETE",
@@ -284,6 +318,10 @@ export function CustomersView() {
                   <p className="text-[10px] text-[#9CA3AF] uppercase">Payments</p>
                 </div>
               </div>
+              <div className="mt-3 flex items-center justify-end gap-1 text-xs text-[#6B7280]">
+                <Eye className="h-3.5 w-3.5" />
+                View customer details
+              </div>
             </div>
           ))}
         </div>
@@ -295,8 +333,168 @@ export function CustomersView() {
         editing={editing}
         onSuccess={load}
       />
+
+      <CustomerDetailSheet
+        customer={detailCustomer}
+        data={detailData}
+        loading={detailLoading}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDetailCustomer(null);
+            setDetailData(null);
+          }
+        }}
+      />
     </div>
   );
+}
+
+function CustomerDetailSheet({
+  customer,
+  data,
+  loading,
+  onOpenChange,
+}: {
+  customer: Customer | null;
+  data: any;
+  loading: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const invoices = data?.invoices || [];
+  const payments = data?.payments || [];
+  const vehicles = data?.vehicles || [];
+  const ledgers = data?.ledgers || [];
+  const totalInvoiced = invoices.reduce(
+    (sum: number, invoice: any) => sum + Number(invoice.total || 0),
+    0
+  );
+  const totalPaid = payments.reduce(
+    (sum: number, payment: any) => sum + Number(payment.amount || 0),
+    0
+  );
+
+  return (
+    <Sheet open={!!customer} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>{customer?.name}</SheetTitle>
+          {customer?.companyName && (
+            <p className="text-sm text-[#6B7280]">{customer.companyName}</p>
+          )}
+        </SheetHeader>
+
+        {loading ? (
+          <div className="py-10 text-center text-sm text-[#6B7280]">
+            Loading customer details…
+          </div>
+        ) : data ? (
+          <div className="space-y-5 py-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <DetailMetric label="Vehicles" value={vehicles.length} />
+              <DetailMetric label="Invoices" value={invoices.length} />
+              <DetailMetric label="Invoiced" value={formatCurrency(totalInvoiced)} />
+              <DetailMetric label="Paid" value={formatCurrency(totalPaid)} />
+            </div>
+
+            <div className="space-y-1 text-sm text-[#4B5563]">
+              {customer?.email && <p>{customer.email}</p>}
+              {customer?.phone && <p>{customer.phone}</p>}
+              {customer?.address && <p>{customer.address}</p>}
+            </div>
+
+            <Tabs defaultValue="invoices">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="invoices">Invoices</TabsTrigger>
+                <TabsTrigger value="payments">Payments</TabsTrigger>
+                <TabsTrigger value="vehicles">Vehicles</TabsTrigger>
+                <TabsTrigger value="ledgers">Ledgers</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="invoices" className="mt-4 space-y-2">
+                {invoices.length === 0 ? (
+                  <DetailEmpty text="No invoices for this customer" />
+                ) : invoices.map((invoice: any) => (
+                  <div key={invoice.id} className="rounded-lg border p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{invoice.invoiceNumber}</p>
+                        <p className="text-xs text-[#6B7280]">
+                          Due {formatDate(invoice.dueDate)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold">{formatCurrency(invoice.total)}</p>
+                        <p className="text-xs text-[#6B7280]">{invoice.status}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </TabsContent>
+
+              <TabsContent value="payments" className="mt-4 space-y-2">
+                {payments.length === 0 ? (
+                  <DetailEmpty text="No payments for this customer" />
+                ) : payments.map((payment: any) => (
+                  <div key={payment.id} className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <p className="font-medium">{payment.method}</p>
+                      <p className="text-xs text-[#6B7280]">
+                        {formatDate(payment.createdAt)}{payment.referenceNo ? ` • ${payment.referenceNo}` : ""}
+                      </p>
+                    </div>
+                    <p className="font-semibold text-emerald-700">{formatCurrency(payment.amount)}</p>
+                  </div>
+                ))}
+              </TabsContent>
+
+              <TabsContent value="vehicles" className="mt-4 space-y-2">
+                {vehicles.length === 0 ? (
+                  <DetailEmpty text="No vehicles for this customer" />
+                ) : vehicles.map((vehicle: any) => (
+                  <div key={vehicle.id} className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <p className="font-medium">{vehicle.year} {vehicle.make} {vehicle.model}</p>
+                      <p className="font-mono text-xs text-[#6B7280]">{vehicle.vin}</p>
+                    </div>
+                    <p className="text-xs text-[#6B7280]">{vehicle.status}</p>
+                  </div>
+                ))}
+              </TabsContent>
+
+              <TabsContent value="ledgers" className="mt-4 space-y-2">
+                {ledgers.length === 0 ? (
+                  <DetailEmpty text="No ledgers for this customer" />
+                ) : ledgers.map((ledger: any) => (
+                  <div key={ledger.id} className="rounded-lg border p-3">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">{ledger.name}</p>
+                      <p className="font-semibold">{formatCurrency(ledger.balance)}</p>
+                    </div>
+                    <p className="mt-1 text-xs text-[#6B7280]">
+                      {ledger.transactions?.length || 0} transaction(s)
+                    </p>
+                  </div>
+                ))}
+              </TabsContent>
+            </Tabs>
+          </div>
+        ) : null}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function DetailMetric({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-lg border bg-slate-50 p-3">
+      <p className="text-xs text-[#6B7280]">{label}</p>
+      <p className="mt-1 text-sm font-semibold truncate">{value}</p>
+    </div>
+  );
+}
+
+function DetailEmpty({ text }: { text: string }) {
+  return <p className="rounded-lg border border-dashed p-6 text-center text-sm text-[#6B7280]">{text}</p>;
 }
 
 function CustomerFormDialog({
