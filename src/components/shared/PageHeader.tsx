@@ -9,9 +9,10 @@ const useStyles = makeStyles({
   icon: { display: 'grid', placeItems: 'center', width: '40px', height: '40px', borderRadius: tokens.borderRadiusMedium, backgroundColor: tokens.colorBrandBackground, color: tokens.colorBrandForegroundInverted },
   eyebrow: { display: 'block', color: tokens.colorBrandForeground1, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: tokens.spacingVerticalXS },
   subtitle: { display: 'block', color: tokens.colorNeutralForeground3, marginTop: tokens.spacingVerticalXS },
+  actions: { display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalS, flexWrap: 'wrap' },
 });
 
 export function PageHeader({ title, subtitle, icon: Icon, actions }: { title: string; subtitle?: string; icon?: ComponentType<{ className?: string }>; actions?: ReactNode; className?: string }) {
   const styles = useStyles();
-  return <div className={styles.root}><div className={styles.heading}>{Icon && <div className={styles.icon}><Icon /></div>}<div><Text className={styles.eyebrow} size={200} weight="semibold">JACXI workspace</Text><Title2>{title}</Title2>{subtitle && <Text className={styles.subtitle}>{subtitle}</Text>}</div></div>{actions && <div>{actions}</div>}</div>;
+  return <div className={styles.root}><div className={styles.heading}>{Icon && <div className={styles.icon}><Icon /></div>}<div><Text className={styles.eyebrow} size={200} weight="semibold">JACXI workspace</Text><Title2>{title}</Title2>{subtitle && <Text className={styles.subtitle}>{subtitle}</Text>}</div></div>{actions && <div className={styles.actions}>{actions}</div>}</div>;
 }
