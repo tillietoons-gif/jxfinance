@@ -590,6 +590,7 @@ function InvoiceFormDialog({
     invoiceNumber: generateInvoiceNumber(),
     customerId: "",
     vehicleId: "",
+    vehicleIds: [] as string[],
     status: "DRAFT",
     issueDate: new Date().toISOString().slice(0, 10),
     dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
@@ -615,6 +616,7 @@ function InvoiceFormDialog({
         invoiceNumber: editing.invoiceNumber,
         customerId: editing.customerId,
         vehicleId: editing.vehicleId || "",
+        vehicleIds: editing.vehicleId ? [editing.vehicleId] : [],
         status: editing.status,
         issueDate: new Date(editing.issueDate).toISOString().slice(0, 10),
         dueDate: new Date(editing.dueDate).toISOString().slice(0, 10),
@@ -632,6 +634,7 @@ function InvoiceFormDialog({
         invoiceNumber: generateInvoiceNumber(invoiceDefaults.prefix),
         customerId: customers[0]?.id || "",
         vehicleId: "",
+        vehicleIds: [],
         status: "DRAFT",
         issueDate: new Date().toISOString().slice(0, 10),
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
@@ -669,7 +672,10 @@ function InvoiceFormDialog({
     (v) => v.customerId === form.customerId
   );
   const availableExpenses = customerExpenses.filter(
-    (expense) => !expense.invoiceId || expense.invoiceId === editing?.id
+    (expense) =>
+      (!expense.invoiceId || expense.invoiceId === editing?.id) &&
+      Number(expense.customerCharge) > 0 &&
+      (!form.vehicleIds.length || form.vehicleIds.includes(expense.vehicleId))
   );
 
   const subtotal = form.items.reduce(
@@ -822,26 +828,27 @@ function InvoiceFormDialog({
               </div>
             )}
           </div>
-          <div>
-            <Label className="text-xs">Vehicle (optional)</Label>
-            <Select
-              value={form.vehicleId || "none"}
-              onValueChange={(v) =>
-                setForm({ ...form, vehicleId: v === "none" ? "" : v })
-              }
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="No specific vehicle" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No specific vehicle</SelectItem>
-                {customerVehicles.map((v) => (
-                  <SelectItem key={v.id} value={v.id}>
-                    {v.vin} — {v.make} {v.model}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="rounded-lg border border-[#E5E7EB] p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-xs font-semibold">Vehicles</Label>
+                <p className="text-[10px] text-[#6B7280]">Select multiple vehicles to combine their expenses.</p>
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setForm({ ...form, vehicleIds: form.vehicleIds.length === customerVehicles.length ? [] : customerVehicles.map((v) => v.id), vehicleId: "" })}>
+                {form.vehicleIds.length === customerVehicles.length ? "Clear all" : "Select all"}
+              </Button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {customerVehicles.map((v) => (
+                <label key={v.id} className="flex items-center gap-2 rounded-md border border-[#F3F4F6] p-2 text-sm cursor-pointer">
+                  <Checkbox checked={form.vehicleIds.includes(v.id)} onCheckedChange={(checked) => {
+                    const vehicleIds = checked ? [...form.vehicleIds, v.id] : form.vehicleIds.filter((id) => id !== v.id);
+                    setForm({ ...form, vehicleIds, vehicleId: vehicleIds.length === 1 ? vehicleIds[0] : "", expenseIds: form.expenseIds.filter((id) => customerExpenses.find((e) => e.id === id && vehicleIds.includes(e.vehicleId))) });
+                  }} />
+                  <span>{v.vin} — {v.make} {v.model}</span>
+                </label>
+              ))}
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

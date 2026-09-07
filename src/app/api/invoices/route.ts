@@ -46,9 +46,14 @@ export async function POST(req: NextRequest) {
       0
     );
     const expenseIds = [...new Set(body.expenseIds || [])];
+    const vehicleIds = [...new Set(body.vehicleIds || (body.vehicleId ? [body.vehicleId] : []))];
     const attachedExpenses = expenseIds.length
       ? await db.expense.findMany({
-          where: { id: { in: expenseIds }, invoiceId: null, vehicle: { customerId: body.customerId } },
+          where: {
+            id: { in: expenseIds },
+            invoiceId: null,
+            vehicle: { customerId: body.customerId, ...(vehicleIds.length ? { id: { in: vehicleIds } } : {}) },
+          },
           select: { customerCharge: true },
         })
       : [];

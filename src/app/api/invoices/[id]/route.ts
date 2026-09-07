@@ -59,12 +59,13 @@ export async function PUT(
         ? existing.expenses.map((expense) => expense.id)
         : []
     ))];
+    const vehicleIds = [...new Set(body.vehicleIds || (body.vehicleId ? [body.vehicleId] : []))];
     const attachedExpenses = expenseIds.length
       ? await db.expense.findMany({
           where: {
             id: { in: expenseIds },
             OR: [{ invoiceId: null }, { invoiceId: id }],
-            vehicle: { customerId: body.customerId },
+            vehicle: { customerId: body.customerId, ...(vehicleIds.length ? { id: { in: vehicleIds } } : {}) },
           },
           select: { customerCharge: true },
         })
