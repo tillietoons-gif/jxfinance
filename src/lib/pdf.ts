@@ -229,8 +229,8 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
   let y = 26;
   if (logoData) {
     try {
-      const maxLogoWidth = 32;
-      const maxLogoHeight = 18;
+      const maxLogoWidth = 52;
+      const maxLogoHeight = 24;
       const scale = Math.min(maxLogoWidth / logoData.width, maxLogoHeight / logoData.height);
       const logoWidth = logoData.width * scale;
       const logoHeight = logoData.height * scale;
@@ -248,7 +248,7 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
       // Fall back to the text wordmark if the configured image format is unsupported.
     }
   }
-  const brandX = logoData ? marginX + 37 : marginX;
+  const brandX = logoData ? marginX + 58 : marginX;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(34);
   doc.setTextColor(...JACXI.black);
@@ -410,6 +410,7 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
     const note = expense.notes?.trim() || expense.title || "Expense";
     return {
       description: `${vin} — ${note}`,
+      category: expense.category?.trim() || "Uncategorized",
       quantity: 1,
       unitPrice: expense.customerCharge,
       total: expense.customerCharge,
@@ -433,7 +434,7 @@ export async function generateInvoicePdf(data: InvoicePdfData) {
     head: [["Description", "Type", "Qty", "Unit Price", "Amount"]],
     body: tableItems.map((it: any) => [
       String(it.description || "").toUpperCase(),
-      inferLineItemType(it.description || ""),
+      String(it.category || inferLineItemType(it.description || "")).toUpperCase(),
       String(it.quantity || 1),
       money(it.unitPrice),
       money(it.total),
