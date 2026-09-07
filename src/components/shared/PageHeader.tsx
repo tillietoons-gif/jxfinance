@@ -1,52 +1,17 @@
-"use client";
+'use client';
 
-import { LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Text, Title2, makeStyles, tokens } from '@fluentui/react-components';
+import type { ReactNode, ComponentType } from 'react';
 
-interface Props {
-  title: string;
-  subtitle?: string;
-  icon?: LucideIcon;
-  actions?: React.ReactNode;
-  className?: string;
-}
+const useStyles = makeStyles({
+  root: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: tokens.spacingHorizontalL, marginBottom: tokens.spacingVerticalXXL, flexWrap: 'wrap' },
+  heading: { display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalM },
+  icon: { display: 'grid', placeItems: 'center', width: '40px', height: '40px', borderRadius: tokens.borderRadiusMedium, backgroundColor: tokens.colorBrandBackground, color: tokens.colorBrandForegroundInverted },
+  eyebrow: { display: 'block', color: tokens.colorBrandForeground1, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: tokens.spacingVerticalXS },
+  subtitle: { display: 'block', color: tokens.colorNeutralForeground3, marginTop: tokens.spacingVerticalXS },
+});
 
-export function PageHeader({
-  title,
-  subtitle,
-  icon: Icon,
-  actions,
-  className,
-}: Props) {
-  return (
-    <div
-      className={cn(
-        "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6",
-        className
-      )}
-    >
-      <div className="flex items-start gap-3.5">
-        {Icon && (
-          <div className="relative h-11 w-11 rounded-md bg-black text-white flex items-center justify-center shrink-0 shadow-sm">
-            <Icon className="h-4 w-4 text-[#D4AF37]" />
-            <span className="absolute -bottom-1 left-2 right-2 h-0.5 bg-[#D4AF37]" />
-          </div>
-        )}
-        <div>
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider-brand text-[#92730E]">
-            JACXI workspace
-          </p>
-          <h1 className="text-2xl font-bold tracking-[-0.03em] text-black">
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="text-xs text-[#6B7280] mt-1 tracking-wide font-medium">
-              {subtitle}
-            </p>
-          )}
-        </div>
-      </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
-    </div>
-  );
+export function PageHeader({ title, subtitle, icon: Icon, actions }: { title: string; subtitle?: string; icon?: ComponentType<{ className?: string }>; actions?: ReactNode; className?: string }) {
+  const styles = useStyles();
+  return <div className={styles.root}><div className={styles.heading}>{Icon && <div className={styles.icon}><Icon /></div>}<div><Text className={styles.eyebrow} size={200} weight="semibold">JACXI workspace</Text><Title2>{title}</Title2>{subtitle && <Text className={styles.subtitle}>{subtitle}</Text>}</div></div>{actions && <div>{actions}</div>}</div>;
 }
