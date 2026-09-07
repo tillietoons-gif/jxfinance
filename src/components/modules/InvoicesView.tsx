@@ -477,7 +477,13 @@ export function InvoicesView() {
                     key={`expense-${expense.id}`}
                     className="grid grid-cols-12 gap-2 border-t border-[#F3F4F6] bg-[#FFFBEB] p-2.5 text-xs"
                   >
-                    <div className="col-span-6">{expense.title} <span className="text-[#92730E]">(expense)</span></div>
+                    <div className="col-span-6">
+                      <span className="font-mono text-[11px] text-[#6B7280]">
+                        {expense.vehicle?.vin || "—"}
+                      </span>
+                      <span className="mx-1.5 text-[#D1D5DB]">—</span>
+                      {expense.notes || expense.title || "Expense"}
+                    </div>
                     <div className="col-span-2 text-center">1</div>
                     <div className="col-span-2 text-right font-mono">{formatCurrency(expense.customerCharge)}</div>
                     <div className="col-span-2 text-right font-mono font-semibold">{formatCurrency(expense.customerCharge)}</div>
@@ -520,7 +526,6 @@ export function InvoicesView() {
                     vehicle: detailData.vehicle,
                     items: detailData.items,
                     expenses: detailData.expenses,
-                    logoUrl: "/logo.svg",
                   })
                 }
               >
