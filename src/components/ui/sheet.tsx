@@ -15,12 +15,12 @@ import {
 } from "@fluentui/react-components";
 
 const useStyles = makeStyles({
-  body: { padding: tokens.spacingVerticalL, overflowY: "auto" },
+  body: { padding: 0, overflowY: "auto", width: "100%", minWidth: 0, boxSizing: "border-box" },
   footer: { display: "flex", justifyContent: "flex-end", gap: tokens.spacingHorizontalM, padding: tokens.spacingVerticalL },
   description: { color: tokens.colorNeutralForeground2, lineHeight: tokens.lineHeightBase300 },
 });
 
-export function Sheet({ open, onOpenChange, children, size = "medium", position = "end", ...props }: { open?: boolean; onOpenChange?: (open: boolean) => void; children: React.ReactNode; size?: "small" | "medium" | "large" | "full"; position?: "start" | "end" | "top" | "bottom" } & Partial<DrawerProps>) {
+export function Sheet({ open, onOpenChange, children, size = "large", position = "end", ...props }: { open?: boolean; onOpenChange?: (open: boolean) => void; children: React.ReactNode; size?: "small" | "medium" | "large" | "full"; position?: "start" | "end" | "top" | "bottom" } & Partial<DrawerProps>) {
   const FluentDrawer = Drawer as any;
   return <FluentDrawer open={open} size={size} position={position} onOpenChange={(_, data) => onOpenChange?.(data.open)} {...props}>{children as any}</FluentDrawer>;
 }
@@ -31,7 +31,7 @@ export function SheetTrigger({ children }: { children: React.ReactNode }) {
 
 export function SheetContent({ children, className, side: _side, style, ...props }: any) {
   const styles = useStyles();
-  return <DrawerBody className={mergeClasses(styles.body, className)} style={{ width: "100%", minWidth: 0, boxSizing: "border-box", ...style }} {...props}>{children}</DrawerBody>;
+  return <DrawerBody className={mergeClasses(styles.body, className)} style={{ width: "100%", maxWidth: "100%", minWidth: 0, boxSizing: "border-box", ...style }} {...props}>{children}</DrawerBody>;
 }
 
 export function SheetHeader({ children, className, ...props }: any) { return <DrawerHeader className={className} {...props}>{children}</DrawerHeader>; }

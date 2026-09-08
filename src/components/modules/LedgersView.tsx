@@ -128,6 +128,7 @@ export function LedgersView() {
   const totalCompany = ledgers
     .filter((l) => l.type === "COMPANY")
     .reduce((s, l) => s + l.balance, 0);
+  const ledgerBalance = totalCustomer - totalCompany;
 
   const handleExcel = async () => {
     await exportToExcel({
@@ -194,7 +195,7 @@ export function LedgersView() {
       />
 
       {/* Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
         <div className="rounded-lg border border-[#D4AF37]/30 bg-violet-50 p-4">
           <div className="flex items-center gap-2 mb-1">
             <User className="h-4 w-4 text-[#92730E]" />
@@ -237,6 +238,20 @@ export function LedgersView() {
           </p>
           <p className="text-[10px] text-[#92730E] mt-0.5">
             Outstanding from customers
+          </p>
+        </div>
+        <div className="rounded-lg border border-[#111827]/15 bg-[#111827] p-4 text-white">
+          <div className="flex items-center gap-2 mb-1">
+            <Wallet className="h-4 w-4 text-[#D4AF37]" />
+            <p className="text-xs uppercase tracking-wider font-semibold text-[#D4AF37]">
+              Balance
+            </p>
+          </div>
+          <p className="text-xl font-bold">
+            {formatCurrency(ledgerBalance)}
+          </p>
+          <p className="text-[10px] text-white/70 mt-0.5">
+            Customers total minus company total
           </p>
         </div>
       </div>

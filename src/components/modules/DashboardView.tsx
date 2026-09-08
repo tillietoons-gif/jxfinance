@@ -139,6 +139,22 @@ export function DashboardView({
         }
       />
 
+      <section aria-labelledby="quick-actions-title" className="flex flex-col gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 id="quick-actions-title" className="text-sm font-semibold text-[#242424]">Quick actions</h2>
+            <p className="text-xs text-[#6B7280]">Start the most common workflows from one place.</p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => onNavigate("reports")} className="gap-1.5">Open insights <ArrowRight className="h-3.5 w-3.5" /></Button>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Button variant="outline" size="sm" onClick={() => onNavigate("vehicles")} className="justify-start">Add vehicle</Button>
+          <Button variant="outline" size="sm" onClick={() => onNavigate("customers")} className="justify-start">Add customer</Button>
+          <Button variant="outline" size="sm" onClick={() => onNavigate("invoices")} className="justify-start">Create invoice</Button>
+          <Button variant="outline" size="sm" onClick={() => onNavigate("payments")} className="justify-start">Record payment</Button>
+        </div>
+      </section>
+
       {/* KPI Cards — JACXI brand: primary=jet black with gold, others snow-white with gold borders */}
       <div className="stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
@@ -170,6 +186,24 @@ export function DashboardView({
           icon={DollarSign}
         />
       </div>
+
+      <section aria-labelledby="attention-title" className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-3"><CardTitle id="attention-title" className="text-sm font-medium">Needs attention</CardTitle></CardHeader>
+          <CardContent className="grid gap-2 sm:grid-cols-3">
+            <button type="button" onClick={() => onNavigate("invoices")} className="rounded-lg border border-[#E5E7EB] p-3 text-left transition hover:border-[#D4AF37]">
+              <span className="block text-2xl font-semibold text-[#242424]">{c.invoices || 0}</span><span className="text-xs text-[#6B7280]">Invoices to review</span>
+            </button>
+            <button type="button" onClick={() => onNavigate("payments")} className="rounded-lg border border-[#E5E7EB] p-3 text-left transition hover:border-[#D4AF37]">
+              <span className="block text-2xl font-semibold text-[#242424]">{formatCurrency(f.totalOutstanding)}</span><span className="text-xs text-[#6B7280]">Outstanding balance</span>
+            </button>
+            <button type="button" onClick={() => onNavigate("vehicles")} className="rounded-lg border border-[#E5E7EB] p-3 text-left transition hover:border-[#D4AF37]">
+              <span className="block text-2xl font-semibold text-[#242424]">{c.vehicles || 0}</span><span className="text-xs text-[#6B7280]">Vehicles in workspace</span>
+            </button>
+          </CardContent>
+        </Card>
+        <Card><CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Next step</CardTitle></CardHeader><CardContent><p className="text-sm text-[#6B7280]">Review outstanding invoices and record recent payments to keep your books current.</p><Button size="sm" className="mt-4" onClick={() => onNavigate("invoices")}>Review invoices</Button></CardContent></Card>
+      </section>
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
