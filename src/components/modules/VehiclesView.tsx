@@ -741,21 +741,20 @@ function VehicleFormDialog({
           </div>
           <div>
             <Label className="text-xs">Customer *</Label>
-            <Select
+            <select
+              aria-label="Customer"
               value={form.customerId}
-              onValueChange={(v) => setForm({ ...form, customerId: v })}
+              onChange={(event) => setForm({ ...form, customerId: event.target.value })}
+              className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+              required
             >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select customer" />
-              </SelectTrigger>
-              <SelectContent>
-                {customers.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <option value="">Select customer</option>
+              {customers.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <Label className="text-xs">Status</Label>
