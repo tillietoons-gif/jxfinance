@@ -15,7 +15,7 @@ import {
 } from "@fluentui/react-components";
 
 const useStyles = makeStyles({
-  body: { padding: tokens.spacingVerticalL, overflowY: "auto", width: "100%", minWidth: 0, boxSizing: "border-box" },
+  body: { padding: 0, overflowY: "auto", width: "100%", minWidth: 0, boxSizing: "border-box" },
   footer: { display: "flex", justifyContent: "flex-end", gap: tokens.spacingHorizontalM, padding: tokens.spacingVerticalL },
   description: { color: tokens.colorNeutralForeground2, lineHeight: tokens.lineHeightBase300 },
 });
@@ -31,7 +31,7 @@ export function SheetTrigger({ children }: { children: React.ReactNode }) {
 
 export function SheetContent({ children, className, side: _side, style, ...props }: any) {
   const styles = useStyles();
-  return <DrawerBody className={mergeClasses(styles.body, className)} style={{ width: "100%", minWidth: 0, boxSizing: "border-box", ...style }} {...props}>{children}</DrawerBody>;
+  return <DrawerBody className={mergeClasses(styles.body, className)} style={{ width: "100%", maxWidth: "100%", minWidth: 0, boxSizing: "border-box", ...style }} {...props}>{children}</DrawerBody>;
 }
 
 export function SheetHeader({ children, className, ...props }: any) { return <DrawerHeader className={className} {...props}>{children}</DrawerHeader>; }
