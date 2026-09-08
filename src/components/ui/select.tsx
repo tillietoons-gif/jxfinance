@@ -49,7 +49,7 @@ function SelectValue({ placeholder }: { placeholder?: string }) {
 
 function SelectTrigger({ className, size = "default", children, ...props }: React.ComponentProps<"select"> & { size?: "sm" | "default" }) {
   const context = React.useContext(SelectContext)
-  return <select {...props} value={context?.value ?? ""} disabled={props.disabled ?? context?.disabled} onChange={(event) => context?.onValueChange?.(event.target.value)} className={className} aria-label={props["aria-label"] ?? "Select option"} style={{ width: "100%", minHeight: size === "sm" ? 32 : 36, padding: "0 12px", borderRadius: 6, border: "1px solid var(--colorNeutralStroke1, #d1d1d1)", background: "var(--colorNeutralBackground1, #fff)", color: "var(--colorNeutralForeground1, #242424)", ...props.style }} />
+  return <select {...props} value={context?.value ?? ""} disabled={props.disabled ?? context?.disabled} onChange={(event) => context?.onValueChange?.(event.target.value)} className={className} aria-label={props["aria-label"] ?? "Select option"} style={{ width: "100%", minHeight: size === "sm" ? 32 : 36, padding: "0 12px", borderRadius: 6, border: "1px solid var(--colorNeutralStroke1, #d1d1d1)", background: "var(--colorNeutralBackground1, #fff)", color: "var(--colorNeutralForeground1, #242424)", ...props.style }}>{!context?.value && <option value="">{(React.Children.toArray(children).find((child) => React.isValidElement(child)) as React.ReactElement<{ placeholder?: string }> | undefined)?.props.placeholder ?? "Select option"}</option>}{context?.items.map((item) => <option key={item.value} value={item.value} disabled={item.disabled}>{item.label}</option>)}</select>
 }
 
 function SelectContent({ children: _children }: { children?: React.ReactNode }) { return null }
