@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
         status: body.status || "PENDING",
         notes: body.notes || null,
         customerId: body.customerId,
+        companyLedgerId: body.companyLedgerId || null,
       },
     });
     return NextResponse.json(vehicle);

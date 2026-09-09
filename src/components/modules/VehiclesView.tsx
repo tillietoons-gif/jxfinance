@@ -92,9 +92,16 @@ interface Customer {
   name: string;
 }
 
+interface CompanyLedger {
+  id: string;
+  name: string;
+  type: string;
+}
+
 export function VehiclesView() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [companyLedgers, setCompanyLedgers] = useState<CompanyLedger[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
@@ -109,15 +116,18 @@ export function VehiclesView() {
     setLoading(true);
     setError(false);
     try {
-      const [vRes, cRes] = await Promise.all([
+      const [vRes, cRes, lRes] = await Promise.all([
         fetch("/api/vehicles"),
         fetch("/api/customers"),
+        fetch("/api/ledgers?type=COMPANY"),
       ]);
-      if (!vRes.ok || !cRes.ok) throw new Error("Failed to load vehicles");
+      if (!vRes.ok || !cRes.ok || !lRes.ok) throw new Error("Failed to load vehicles");
       const v = await vRes.json();
       const c = await cRes.json();
+      const l = await lRes.json();
       setVehicles(v);
       setCustomers(c);
+      setCompanyLedgers(Array.isArray(l) ? l.filter((ledger) => ledger.type === "COMPANY") : []);
     } catch (e) {
       setError(true);
     } finally {
@@ -380,6 +390,7 @@ export function VehiclesView() {
         onOpenChange={setDialogOpen}
         editing={editing}
         customers={customers}
+        companyLedgers={companyLedgers}
         onSuccess={load}
       />
 
@@ -555,12 +566,14 @@ function VehicleFormDialog({
   onOpenChange,
   editing,
   customers,
+  companyLedgers,
   onSuccess,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   editing: Vehicle | null;
   customers: Customer[];
+  companyLedgers: CompanyLedger[];
   onSuccess: () => void;
 }) {
   const [form, setForm] = useState({
@@ -572,6 +585,7 @@ function VehicleFormDialog({
     status: "PENDING",
     notes: "",
     customerId: "",
+    companyLedgerId: "",
   });
   const [saving, setSaving] = useState(false);
   const [decoding, setDecoding] = useState(false);
@@ -587,6 +601,7 @@ function VehicleFormDialog({
         status: editing.status,
         notes: editing.notes || "",
         customerId: editing.customerId,
+        companyLedgerId: (editing as Vehicle & { companyLedgerId?: string }).companyLedgerId || "",
       });
     } else {
       setForm({
@@ -598,6 +613,7 @@ function VehicleFormDialog({
         status: "PENDING",
         notes: "",
         customerId: customers[0]?.id || "",
+        companyLedgerId: companyLedgers[0]?.id || "",
       });
     }
   }, [editing, customers, open]);
@@ -644,8 +660,8 @@ function VehicleFormDialog({
   };
 
   const submit = async () => {
-    if (!form.vin || !form.make || !form.model || !form.customerId) {
-      toast.error("VIN, Make, Model, and Customer are required");
+    if (!form.vin || !form.make || !form.model || !form.customerId || !form.companyLedgerId) {
+      toast.error("VIN, Make, Model, Customer, and Company Ledger are required");
       return;
     }
     setSaving(true);
@@ -753,6 +769,21 @@ function VehicleFormDialog({
                 <option key={c.id} value={c.id}>
                   {c.name}
                 </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <Label className="text-xs">Company Ledger *</Label>
+            <select
+              aria-label="Company Ledger"
+              value={form.companyLedgerId}
+              onChange={(event) => setForm({ ...form, companyLedgerId: event.target.value })}
+              className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+              required
+            >
+              <option value="">Select company ledger</option>
+              {companyLedgers.map((ledger) => (
+                <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
               ))}
             </select>
           </div>

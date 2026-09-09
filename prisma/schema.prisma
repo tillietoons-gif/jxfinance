@@ -39,9 +39,10 @@ model Vehicle {
   destination   String
   status        String          @default("PENDING")
   notes         String?
-  customerId    String
-  customer      Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  expenses      Expense[]
+  customerId      String
+  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  companyLedgerId  String?
+  expenses         Expense[]
   invoices      Invoice[]
   payments      Payment[]
   createdAt     DateTime        @default(now())
