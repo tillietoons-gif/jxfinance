@@ -80,6 +80,7 @@ export async function PUT(
         status: body.status,
         notes: body.notes || null,
         customerId: body.customerId,
+        companyLedgerId: body.companyLedgerId || null,
       },
     });
     return NextResponse.json(updated);
